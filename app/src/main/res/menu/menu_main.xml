@@ -1,0 +1,54 @@
+<menu xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    tools:context="dong.lan.mapeye.MainActivity">
+    <item
+        android:id="@+id/action_settings"
+        android:orderInCategory="100"
+        android:title="@string/action_settings"
+        app:showAsAction="never" />
+    <item
+        android:id="@+id/action_offline_map"
+        android:orderInCategory="101"
+        android:title="@string/download_offline_map"
+        app:showAsAction="never" />
+    <item
+        android:id="@+id/convert"
+        android:orderInCategory="102"
+        android:title="坐标转换"
+        app:showAsAction="never">
+        <menu>
+            <item
+                android:id="@+id/convert_gps"
+                android:title="GPS" />
+            <item
+                android:id="@+id/convert_common"
+                android:title="COMMON" />
+            <item
+                android:id="@+id/convert_no"
+                android:title="NO" />
+        </menu>
+    </item>
+    <item
+        android:orderInCategory="104"
+        android:title="地图类型">
+        <menu>
+            <item
+                android:id="@+id/map_nomon"
+                android:title="普通地图" />
+            <item
+                android:id="@+id/map_earth"
+                android:title="卫星地图" />
+        </menu>
+    </item>
+    <item
+        android:id="@+id/action_test"
+        android:orderInCategory="103"
+        android:title="测试"
+        app:showAsAction="never" />
+    <item
+        android:id="@+id/action_to_collect"
+        android:orderInCategory="105"
+        android:title="采集定位坐标"
+        app:showAsAction="never" />
+</menu>

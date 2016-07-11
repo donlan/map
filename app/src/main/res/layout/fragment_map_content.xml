@@ -1,0 +1,81 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical">
+    <FrameLayout
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1">
+
+        <com.baidu.mapapi.map.MapView
+            android:id="@+id/mapView"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent" />
+    </FrameLayout>
+
+    <HorizontalScrollView
+        android:layout_width="wrap_content"
+        android:layout_height="50dp"
+        android:scrollbarSize="2dp"
+        android:scrollbarStyle="insideOverlay">
+
+        <LinearLayout
+            android:layout_width="wrap_content"
+            android:layout_height="50dp">
+
+            <Button
+                android:id="@+id/query_fence"
+                style="@style/baseButton"
+                android:background="@color/md_indigo_600"
+                android:text="查看围栏" />
+
+            <Button
+                android:id="@+id/start_record"
+                style="@style/baseButton"
+                android:background="@color/md_green_500"
+                android:text="开始记录" />
+
+            <Button
+                android:id="@+id/generate_record"
+                style="@style/baseButton"
+                android:background="@color/md_yellow_700"
+                android:text="生成围栏" />
+
+            <Button
+                android:id="@+id/generate_route_record"
+                style="@style/baseButton"
+                android:background="@color/md_grey_700"
+                android:text="生成路线" />
+
+            <Button
+                android:id="@+id/save_record"
+                style="@style/baseButton"
+                android:background="@color/md_blue_500"
+                android:text="保存围栏" />
+            <Button
+                android:id="@+id/save_route"
+                style="@style/baseButton"
+                android:background="@color/md_brown_300"
+                android:text="保存路径" />
+
+            <Button
+                android:id="@+id/start_look"
+                style="@style/baseButton"
+                android:background="@color/md_purple_700"
+                android:text="开始监听" />
+
+            <Button
+                android:id="@+id/start_my_look"
+                style="@style/baseButton"
+                android:background="@color/md_pink_600"
+                android:text="监听本机位置" />
+
+            <Button
+                android:id="@+id/reset_record"
+                style="@style/baseButton"
+                android:background="@color/md_red_400"
+                android:text="重置围栏" />
+        </LinearLayout>
+    </HorizontalScrollView>
+</LinearLayout>

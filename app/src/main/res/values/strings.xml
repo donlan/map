@@ -1,0 +1,18 @@
+<resources>
+    <string name="app_name">MapEye</string>
+    <string name="action_settings">设置监听手机</string>
+    <string name="section_format">Hello World from section: %1$d</string>
+    <string name="title_activity_main2">Main2Activity</string>
+
+    <string name="navigation_drawer_open">Open navigation drawer</string>
+    <string name="navigation_drawer_close">Close navigation drawer</string>
+    <string name="input_fence_label_name">输入围栏名称</string>
+    <string name="download_offline_map">下载离线地图</string>
+    <string name="search_offline_city">搜索离线城市地图</string>
+    <string name="search_city">搜索离线</string>
+    <string name="downloaded_city">已下载的地图</string>
+    <string name="city_download_manager">下载管理</string>
+    <string name="city_list">城市列表</string>
+    <string name="look">查看</string>
+    <string name="delete">删除</string>
+</resources>
