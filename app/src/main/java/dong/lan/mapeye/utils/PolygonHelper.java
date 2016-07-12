@@ -1,5 +1,7 @@
 package dong.lan.mapeye.utils;
 
+import android.graphics.Color;
+
 import com.baidu.mapapi.map.BaiduMap;
 import com.baidu.mapapi.map.OverlayOptions;
 import com.baidu.mapapi.map.PolygonOptions;
@@ -60,7 +62,7 @@ public final class PolygonHelper {
     public static void createFence(BaiduMap baiduMap, List<LatLng> points) {
         if (points.size() > 0) {
             OverlayOptions ooPolygon = new PolygonOptions().points(points)
-                    .stroke(new Stroke(5, 0xAA00FF00)).fillColor(0x88FFFF00);
+                    .stroke(new Stroke(5, 0xAA00FF00)).fillColor(0xe33FF00);
             baiduMap.addOverlay(ooPolygon);
         }
     }
@@ -68,7 +70,7 @@ public final class PolygonHelper {
     public static void createRoute(BaiduMap baiduMap, Route route, List<LatLng> points) {
         if (points.size() > 0) {
             OverlayOptions ooPolyLine = new PolylineOptions().points(points)
-                    .width(10);
+                    .width(10).color(Color.parseColor("#F44336"));
             baiduMap.addOverlay(ooPolyLine);
             route.points.clear();
             for (int i = 0, s = points.size(); i < s; i++)
@@ -82,7 +84,7 @@ public final class PolygonHelper {
             points.add(new LatLng(route.points.get(i).lat,route.points.get(i).lng));
         if (points.size() > 0) {
             OverlayOptions ooPolyLine = new PolylineOptions().points(points)
-                    .width(10);
+                    .width(10).color(Color.parseColor("#F44336"));
             baiduMap.addOverlay(ooPolyLine);
         }
         return points;
@@ -95,7 +97,7 @@ public final class PolygonHelper {
         }
         if (points.size() > 0) {
             OverlayOptions ooPolygon = new PolygonOptions().points(ps)
-                    .stroke(new Stroke(5, 0xAA00FF00)).fillColor(0x88FFFF00);
+                    .stroke(new Stroke(5, 0xAA00FF00)).fillColor(0x33FFFF00);
             baiduMap.addOverlay(ooPolygon);
         }
         return ps;
