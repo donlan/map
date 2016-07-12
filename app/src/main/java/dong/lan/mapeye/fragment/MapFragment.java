@@ -87,6 +87,7 @@ public class MapFragment extends Fragment implements BDLocationListener, BaiduMa
     @Bind(R.id.map_drawer)
     DrawerLayout mapDraw;
     private BitmapDescriptor bitmap;
+    private boolean CLEAR = true;
 
     @OnClick(R.id.start_record)
     public void startRecord() {
@@ -105,8 +106,6 @@ public class MapFragment extends Fragment implements BDLocationListener, BaiduMa
     public void generateRoute() {
         TAG = TAG_ROUTE;
         FLAG = FLAG_ROUTE;
-        if (route == null)
-            route = new Route();
         PolygonHelper.createRoute(baiduMap, route, points);
     }
 
@@ -142,7 +141,7 @@ public class MapFragment extends Fragment implements BDLocationListener, BaiduMa
     }
 
     @OnClick(R.id.save_route)
-    public void saveRoute(){
+    public void saveRoute() {
         TAG = TAG_SAVE;
         View view = LayoutInflater.from(getActivity()).inflate(R.layout.alert_label_text, null);
         final EditText editText = (EditText) view.findViewById(R.id.fence_label_et);
@@ -158,7 +157,7 @@ public class MapFragment extends Fragment implements BDLocationListener, BaiduMa
                         }
                         realm.beginTransaction();
                         Route route = realm.createObject(Route.class);
-                        route.time=new Date();
+                        route.time = new Date();
                         route.tag = 0;
                         route.label = editText.getText().toString();
                         for (int i = 0, s = points.size(); i < s; i++) {
@@ -181,6 +180,7 @@ public class MapFragment extends Fragment implements BDLocationListener, BaiduMa
     public void resetRecord() {
         points.clear();
         baiduMap.clear();
+        CLEAR =true;
         TAG = TAG_RESET;
         Toast("重置围栏成功");
     }
@@ -188,7 +188,7 @@ public class MapFragment extends Fragment implements BDLocationListener, BaiduMa
     @OnClick(R.id.start_look)
     public void startLook() {
         if (points.size() < 2) {
-            Toast("请先生成一个围栏");
+            Toast("请先生成一个围栏或者路径");
             return;
         }
         TAG = TAG_LOOK;
@@ -224,6 +224,7 @@ public class MapFragment extends Fragment implements BDLocationListener, BaiduMa
 
     public MapFragment() {
         bitmap = BitmapDescriptorFactory.fromResource(R.drawable.nav);
+        route = new Route();
     }
 
     @Nullable
@@ -242,6 +243,7 @@ public class MapFragment extends Fragment implements BDLocationListener, BaiduMa
         builder.deleteRealmIfMigrationNeeded();
         realm = Realm.getInstance(builder.build());
         soundHelper = new SoundHelper().init(2);
+        soundHelper.loadAll(getActivity(),new int[]{R.raw.alert});
         if (Build.VERSION.SDK_INT >= 23
                 && ContextCompat.checkSelfPermission(getActivity(),
                 android.Manifest.permission.ACCESS_FINE_LOCATION) !=
@@ -273,7 +275,7 @@ public class MapFragment extends Fragment implements BDLocationListener, BaiduMa
         fenceListView.setLayoutManager(new LinearLayoutManager(getActivity(), LinearLayoutManager.VERTICAL, false));
         RealmResults<Fence> results = realm.where(Fence.class).findAll();
         RealmResults<Route> routes = realm.where(Route.class).findAll();
-        adapter = new FenceAdapter(getActivity(), results,routes);
+        adapter = new FenceAdapter(getActivity(), results, routes);
         adapter.setFenceItemClickListener(this);
         fenceListView.setAdapter(adapter);
     }
@@ -306,6 +308,7 @@ public class MapFragment extends Fragment implements BDLocationListener, BaiduMa
 
         locBitmap.recycle();
         bitmap.recycle();
+        route = null;
     }
 
     @Override
@@ -376,19 +379,24 @@ public class MapFragment extends Fragment implements BDLocationListener, BaiduMa
             in = route.isOnRoute(latLng.latitude, latLng.longitude);
         if (!in) {
             vibrator.vibrate(1000);
-            soundHelper.play(getActivity(), R.raw.em_outgoing, 0);
+            soundHelper.play(getActivity(), R.raw.alert, 0);
         }
-        if (eyeMarker == null) {
+        if (eyeMarker == null || CLEAR) {
             OverlayOptions option = new MarkerOptions()
                     .position(latLng)
                     .draggable(false)
                     .zIndex(9)
                     .icon(bitmap);
             eyeMarker = (Marker) baiduMap.addOverlay(option);
+            CLEAR = false;
         } else {
             eyeMarker.setPosition(latLng);
         }
-        Toast("围栏中:" + in);
+            eyeMarker.setVisible(true);
+        if (FLAG == FLAG_FENCE)
+            Toast("围栏中: " + in);
+        if (FLAG == FLAG_ROUTE)
+            Toast("路径中: " + in);
         //if (BuildConfig.DEBUG) Log.d("MapFragment", "in:" + in);
     }
 
@@ -396,6 +404,7 @@ public class MapFragment extends Fragment implements BDLocationListener, BaiduMa
     public void onFenceItemClick(Fence fence) {
         FLAG = FLAG_FENCE;
         baiduMap.clear();
+        CLEAR = true;
         points.clear();
         points.addAll(PolygonHelper.createFence(baiduMap, fence.getPoints()));
         mapDraw.closeDrawer(GravityCompat.START);
@@ -405,9 +414,10 @@ public class MapFragment extends Fragment implements BDLocationListener, BaiduMa
     public void onRouteItemClick(Route route) {
         FLAG = FLAG_ROUTE;
         baiduMap.clear();
+        CLEAR = true;
         points.clear();
-        this.route = route;
-        points.addAll(PolygonHelper.makeRoute(baiduMap,route));
+        this.route.copyTo(route);
+        points.addAll(PolygonHelper.makeRoute(baiduMap, route));
         mapDraw.closeDrawer(GravityCompat.START);
     }
 }
