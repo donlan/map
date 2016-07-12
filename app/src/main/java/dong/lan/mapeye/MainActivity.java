@@ -33,6 +33,7 @@ import dong.lan.mapeye.activities.CollectPointsActivity;
 import dong.lan.mapeye.activities.OfflineMapActivity;
 import dong.lan.mapeye.fragment.MapFragment;
 import dong.lan.mapeye.utils.PointConvert;
+import dong.lan.mapeye.utils.SPHelper;
 
 public class MainActivity extends BaseActivity {
 
@@ -57,9 +58,11 @@ public class MainActivity extends BaseActivity {
             startActivityForResult(intent, 601);
         }
         if (Build.VERSION.SDK_INT >= 23
-                && ContextCompat.checkSelfPermission(this,
+                && (ContextCompat.checkSelfPermission(this,
                 android.Manifest.permission.ACCESS_FINE_LOCATION) !=
-                PackageManager.PERMISSION_GRANTED) {
+                PackageManager.PERMISSION_GRANTED || ContextCompat.checkSelfPermission(this,
+                android.Manifest.permission.ACCESS_FINE_LOCATION) !=
+                PackageManager.PERMISSION_GRANTED)) {
             ActivityCompat.requestPermissions(this, new String[]{
                     Manifest.permission.ACCESS_COARSE_LOCATION,
                     Manifest.permission.ACCESS_FINE_LOCATION,
@@ -67,12 +70,24 @@ public class MainActivity extends BaseActivity {
             }, 1);
         }
 
+        if (Build.VERSION.SDK_INT >= 23
+                && (ContextCompat.checkSelfPermission(this,
+                Manifest.permission.READ_SMS) !=
+                PackageManager.PERMISSION_GRANTED)) {
+            ActivityCompat.requestPermissions(this, new String[]{
+                    Manifest.permission.READ_SMS,
+                    Manifest.permission.BROADCAST_SMS,
+                    Manifest.permission.RECEIVE_SMS
+            }, 2);
+        }
+
+        SPHelper.init(this);
+        phone = SPHelper.get("phone");
         smsFilter = new IntentFilter();
         smsFilter.addAction("android.provider.Telephony.SMS_RECEIVED");
         smsReceiver = new SMSReceiver();
         registerReceiver(smsReceiver, smsFilter);
 
-        PointConvert.init();
     }
 
     @Override
@@ -100,6 +115,7 @@ public class MainActivity extends BaseActivity {
                                 return;
                             }
                             phone = editText.getText().toString();
+                            SPHelper.addOrUpdate("phone",phone);
                             Toast("保存成功");
                         }
                     }).show();
