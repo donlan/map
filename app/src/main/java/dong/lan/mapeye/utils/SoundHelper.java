@@ -24,7 +24,7 @@ public class SoundHelper {
             builder.setMaxStreams(maxStreams);
             soundPool = builder.build();
         } else {
-            soundPool = new SoundPool(maxStreams, 0, 5);
+            soundPool = new SoundPool(maxStreams, 0, 8);
         }
         return this;
     }
@@ -35,7 +35,7 @@ public class SoundHelper {
         if (!soundMap.containsKey(rawId)) {
             soundMap.put(rawId, soundPool.load(context, rawId, 1));
         }
-        soundPool.play(soundMap.get(rawId), 0.8f, 0.8f, 0, replay, 1);
+        soundPool.play(soundMap.get(rawId), 1, 1, 0, replay, 1);
     }
 
 
