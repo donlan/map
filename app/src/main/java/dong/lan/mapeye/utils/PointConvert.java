@@ -58,16 +58,21 @@ import dong.lan.mapeye.BuildConfig;
  */
 public final class PointConvert {
 
-    public static double LAT_GAP = 0;
-    public static double LNG_GAP = 0;
+    public static double LAT_GAP = 0.017976;
+    public static double LNG_GAP = 0.015809;
 
     private PointConvert() {
     }
 
 
+    public static void init(double lat,double lng){
+        LAT_GAP = lat;
+        LNG_GAP = lng;
+    }
+
     public static LatLng convert(double lat, double lng) {
-        lat = 1.022 * lat - 0.8165;
-        lng  = 1.022*lng -2.4606;
+        lat +=LAT_GAP;
+        lng +=LNG_GAP;
         if (BuildConfig.DEBUG) Log.d("PointConvert", "lat,lng:" + lat + " , " + lng);
         return new LatLng(lat, lng);
     }
