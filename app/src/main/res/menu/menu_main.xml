@@ -51,4 +51,15 @@
         android:orderInCategory="105"
         android:title="采集定位坐标"
         app:showAsAction="never" />
+
+    <item
+        android:id="@+id/action_set_distance"
+        android:orderInCategory="106"
+        android:title="设置距离监听"
+        app:showAsAction="never" />
+    <item
+        android:id="@+id/action_set_padding"
+        android:orderInCategory="106"
+        android:title="设置北斗百度偏移量"
+        app:showAsAction="never" />
 </menu>
