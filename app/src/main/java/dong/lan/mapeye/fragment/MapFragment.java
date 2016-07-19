@@ -40,6 +40,7 @@ import com.baidu.mapapi.map.MyLocationConfiguration;
 import com.baidu.mapapi.map.MyLocationData;
 import com.baidu.mapapi.map.OverlayOptions;
 import com.baidu.mapapi.model.LatLng;
+import com.baidu.mapapi.utils.DistanceUtil;
 
 import java.util.ArrayList;
 import java.util.Date;
@@ -88,6 +89,7 @@ public class MapFragment extends Fragment implements BDLocationListener, BaiduMa
     DrawerLayout mapDraw;
     private BitmapDescriptor bitmap;
     private boolean CLEAR = true;
+    private LatLng loc;
 
     @OnClick(R.id.start_record)
     public void startRecord() {
@@ -216,6 +218,7 @@ public class MapFragment extends Fragment implements BDLocationListener, BaiduMa
     private int TAG = -1;
     private int FLAG = -1;
     private boolean isFirstLoc = true;
+    private int distance = 0;
     private LocationClient locationClient;
     private List<LatLng> points = new ArrayList<>();
     private BitmapDescriptor locBitmap = BitmapDescriptorFactory.fromResource(R.drawable.tip);
@@ -243,7 +246,7 @@ public class MapFragment extends Fragment implements BDLocationListener, BaiduMa
         builder.deleteRealmIfMigrationNeeded();
         realm = Realm.getInstance(builder.build());
         soundHelper = new SoundHelper().init(2);
-        soundHelper.loadAll(getActivity(),new int[]{R.raw.alert});
+        soundHelper.loadAll(getActivity(),new int[]{R.raw.alert,R.raw.out_alert});
         if (Build.VERSION.SDK_INT >= 23
                 && ContextCompat.checkSelfPermission(getActivity(),
                 android.Manifest.permission.ACCESS_FINE_LOCATION) !=
@@ -318,7 +321,7 @@ public class MapFragment extends Fragment implements BDLocationListener, BaiduMa
         if (BuildConfig.DEBUG)
             Log.d("MapFragment", bdLocation.getLatitude() + "," + bdLocation.getLongitude() + "_" + bdLocation.getLocType());
 
-        LatLng loc = new LatLng(bdLocation.getLatitude(),
+        loc = new LatLng(bdLocation.getLatitude(),
                 bdLocation.getLongitude());
         MyLocationData locData = new MyLocationData.Builder()
                 .accuracy(bdLocation.getRadius())
@@ -367,7 +370,31 @@ public class MapFragment extends Fragment implements BDLocationListener, BaiduMa
     }
 
 
+    public void setDistance(int distance){
+        this.distance =distance;
+    }
+
     public void onLocationReceived(LatLng latLng) {
+        if (eyeMarker == null || CLEAR) {
+            OverlayOptions option = new MarkerOptions()
+                    .position(latLng)
+                    .draggable(false)
+                    .zIndex(9)
+                    .icon(bitmap);
+            eyeMarker = (Marker) baiduMap.addOverlay(option);
+            CLEAR = false;
+        } else {
+            eyeMarker.setPosition(latLng);
+        }
+        if(distance>0 && loc!=null){
+            double d = DistanceUtil.getDistance(latLng,loc);
+            if(d>distance){
+                Toast("监听目标与当前位置距离是："+(int)d+" 米");
+                vibrator.vibrate(1500);
+                soundHelper.play(getActivity(), R.raw.out_alert, 0);
+            }
+        }
+
         if (points == null || points.size() < 2) {
             Toast("未设置围栏");
             return;
@@ -381,18 +408,7 @@ public class MapFragment extends Fragment implements BDLocationListener, BaiduMa
             vibrator.vibrate(1000);
             soundHelper.play(getActivity(), R.raw.alert, 0);
         }
-        if (eyeMarker == null || CLEAR) {
-            OverlayOptions option = new MarkerOptions()
-                    .position(latLng)
-                    .draggable(false)
-                    .zIndex(9)
-                    .icon(bitmap);
-            eyeMarker = (Marker) baiduMap.addOverlay(option);
-            CLEAR = false;
-        } else {
-            eyeMarker.setPosition(latLng);
-        }
-            eyeMarker.setVisible(true);
+
         if (FLAG == FLAG_FENCE)
             Toast("围栏中: " + in);
         if (FLAG == FLAG_ROUTE)

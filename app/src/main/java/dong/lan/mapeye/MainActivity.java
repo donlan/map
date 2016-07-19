@@ -83,10 +83,27 @@ public class MainActivity extends BaseActivity {
 
         SPHelper.init(this);
         phone = SPHelper.get("phone");
+        String d = SPHelper.get("distance");
+        if(!d.equals("")){
+            mapFragment.setDistance(Integer.valueOf(d));
+        }
         smsFilter = new IntentFilter();
         smsFilter.addAction("android.provider.Telephony.SMS_RECEIVED");
         smsReceiver = new SMSReceiver();
         registerReceiver(smsReceiver, smsFilter);
+
+        try{
+            String latStr = SPHelper.get("padding_lat");
+            String lngStr = SPHelper.get("padding_lng");
+
+            if(latStr.equals("") || lngStr.equals(""))
+                return;
+            double lat  = Double.valueOf(latStr);
+            double lng  = Double.valueOf(lngStr);
+            PointConvert.init(lat,lng);
+        }catch (Exception e){
+            e.printStackTrace();
+        }
 
     }
 
@@ -100,25 +117,7 @@ public class MainActivity extends BaseActivity {
     public boolean onOptionsItemSelected(MenuItem item) {
         int id = item.getItemId();
         if (id == R.id.action_settings) {
-            View view = LayoutInflater.from(this).inflate(R.layout.alert_label_text, null);
-            final EditText editText = (EditText) view.findViewById(R.id.fence_label_et);
-            editText.setInputType(EditorInfo.TYPE_CLASS_PHONE);
-            editText.setHint("手机号码");
-            new AlertDialog.Builder(this)
-                    .setTitle("输入需要监听收到短信的手机号码")
-                    .setView(view)
-                    .setPositiveButton("保存", new DialogInterface.OnClickListener() {
-                        @Override
-                        public void onClick(DialogInterface dialog, int which) {
-                            if (editText.getText().length() < 1) {
-                                Toast("手机号码不能是空的");
-                                return;
-                            }
-                            phone = editText.getText().toString();
-                            SPHelper.addOrUpdate("phone",phone);
-                            Toast("保存成功");
-                        }
-                    }).show();
+            setMonitorPhone();
         } else if (id == R.id.action_offline_map) {
             startActivity(new Intent(MainActivity.this, OfflineMapActivity.class));
         } else if (id == R.id.action_test) {
@@ -136,10 +135,89 @@ public class MainActivity extends BaseActivity {
             mapFragment.setMapType(BaiduMap.MAP_TYPE_SATELLITE);
         }else if(id==R.id.action_to_collect){
             startActivity(new Intent(MainActivity.this, CollectPointsActivity.class));
+        }else if(id==R.id.action_set_distance){
+            setAlertDistance();
+        }else if(id==R.id.action_set_padding){
+            setPaddingDistance();
         }
         return super.onOptionsItemSelected(item);
     }
 
+    private void setPaddingDistance(){
+        View view = LayoutInflater.from(this).inflate(R.layout.base_2et_alert, null);
+        final EditText et_lat = (EditText) view.findViewById(R.id.base_alert_et1);
+        final EditText et_lng = (EditText) view.findViewById(R.id.base_alert_et2);
+        et_lat.setHint("纬度偏移量");
+        et_lng.setHint("经度偏移量");
+        new AlertDialog.Builder(this)
+                .setTitle("输入北斗与百度经纬度偏移量")
+                .setMessage("负数直接在数字前加上-负号，此偏移量将会与百度经纬度直接相加")
+                .setView(view)
+                .setPositiveButton("保存", new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+                        String latStr = et_lat.getText().toString();
+                        String lngStr = et_lng.getText().toString();
+                        try{
+                            double lat  = Double.valueOf(latStr);
+                            double lng  = Double.valueOf(lngStr);
+                            SPHelper.addOrUpdate("padding_lat",latStr);
+                            SPHelper.addOrUpdate("padding_lng",lngStr);
+                            PointConvert.init(lat,lng);
+                            Toast("保存成功");
+                        }catch (Exception e){
+                            e.printStackTrace();
+                            Toast("请确保输入的经纬度是双精度整数");
+                        }
+                    }
+                }).show();
+    }
+
+    private void setMonitorPhone(){
+        View view = LayoutInflater.from(this).inflate(R.layout.alert_label_text, null);
+        final EditText editText = (EditText) view.findViewById(R.id.fence_label_et);
+        editText.setInputType(EditorInfo.TYPE_CLASS_PHONE);
+        editText.setHint("手机号码");
+        new AlertDialog.Builder(this)
+                .setTitle("输入需要监听收到短信的手机号码")
+                .setView(view)
+                .setPositiveButton("保存", new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+                        if (editText.getText().length() < 1) {
+                            Toast("手机号码不能是空的");
+                            return;
+                        }
+                        phone = editText.getText().toString();
+                        SPHelper.addOrUpdate("phone",phone);
+                        Toast("保存成功");
+                    }
+                }).show();
+    }
+
+    private void setAlertDistance(){
+        View view = LayoutInflater.from(this).inflate(R.layout.alert_label_text, null);
+        final EditText editText = (EditText) view.findViewById(R.id.fence_label_et);
+        editText.setInputType(EditorInfo.TYPE_CLASS_PHONE);
+        editText.setHint("整数的距离值");
+        new AlertDialog.Builder(this)
+                .setTitle("输入监听目标的提醒距离范围")
+                .setView(view)
+                .setPositiveButton("保存", new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+                        String disStr =editText.getText().toString();
+                        try{
+                            int d = Integer.valueOf(disStr);
+                            SPHelper.addOrUpdate("distance",String.valueOf(d));
+                            mapFragment.setDistance(d);
+                            Toast("保存成功");
+                        }catch (Exception e){
+                            Toast("输入的距离值不符合规范");
+                        }
+                    }
+                }).show();
+    }
     @Override
     public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults);
