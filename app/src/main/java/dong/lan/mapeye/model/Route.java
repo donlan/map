@@ -14,7 +14,7 @@ import io.realm.RealmObject;
  * Github: github.com/donlan
  */
 public class Route extends RealmObject{
-    public static final double DIS = 100;
+    public static final double DIS = 30;
     public String label;
     public Date time;
     public int tag;
