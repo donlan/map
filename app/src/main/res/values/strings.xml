@@ -15,4 +15,5 @@
     <string name="city_list">城市列表</string>
     <string name="look">查看</string>
     <string name="delete">删除</string>
+    <string name="save">保存</string>
 </resources>
