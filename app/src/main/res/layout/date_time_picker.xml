@@ -1,0 +1,107 @@
+<?xml version="1.0" encoding="utf-8"?><!--
+  ~
+  ~   Copyright (C) 2017 author : 梁桂栋 
+  ~  
+  ~   Licensed under the Apache License, Version 2.0 (the "License");
+  ~   you may not use this file except in compliance with the License.
+  ~   You may obtain a copy of the License at
+  ~  
+  ~        http://www.apache.org/licenses/LICENSE-2.0
+  ~  
+  ~   Unless required by applicable law or agreed to in writing, software
+  ~   distributed under the License is distributed on an "AS IS" BASIS,
+  ~   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  ~   See the License for the specific language governing permissions and
+  ~   limitations under the License.
+  ~   
+  ~   Email me : stonelavender@hotmail.com
+  ~  
+  -->
+
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical">
+
+    <RelativeLayout
+        android:layout_width="match_parent"
+        android:layout_height="@dimen/action_bar_height"
+        android:background="@color/colorPrimary"
+        android:orientation="horizontal">
+
+        <TextView
+            android:id="@+id/left"
+            android:layout_width="@dimen/action_bar_height"
+            android:layout_height="@dimen/action_bar_height"
+            android:gravity="center"
+            android:text="@string/back"
+            android:textColor="@color/md_white_1000"
+            android:textSize="18sp" />
+
+        <RadioGroup
+            android:id="@+id/dateTimeCheck"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:layout_marginLeft="@dimen/action_bar_height"
+            android:layout_marginRight="@dimen/action_bar_height"
+            android:gravity="center"
+            android:orientation="horizontal"
+            android:textSize="20sp">
+
+            <RadioButton
+                android:id="@+id/dateCheck"
+                android:layout_width="40dp"
+                android:layout_height="40dp"
+                android:layout_margin="4dp"
+                android:background="@drawable/tap_check_bg"
+                android:button="@null"
+                android:checked="true"
+                android:gravity="center"
+                android:text="@string/date"
+                android:textColor="@drawable/check_text_colot" />
+
+            <RadioButton
+                android:id="@+id/timeCheck"
+                android:layout_width="40dp"
+                android:layout_height="40dp"
+                android:layout_margin="4dp"
+                android:background="@drawable/tap_check_bg"
+                android:button="@null"
+                android:checked="false"
+                android:gravity="center"
+                android:text="@string/time"
+                android:textColor="@drawable/check_text_colot" />
+
+        </RadioGroup>
+
+        <TextView
+            android:id="@+id/right"
+            android:layout_width="@dimen/action_bar_height"
+            android:layout_height="@dimen/action_bar_height"
+            android:layout_alignParentRight="true"
+            android:gravity="center"
+            android:text="@string/done"
+            android:textColor="@color/md_white_1000"
+            android:textSize="18sp" />
+    </RelativeLayout>
+
+    <ViewFlipper
+        android:id="@+id/switcher"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent">
+
+        <DatePicker
+            android:id="@+id/datePicker"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:layout_gravity="center_horizontal"
+            android:headerBackground="@color/colorPrimary" />
+
+        <TimePicker
+            android:id="@+id/timePicker"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:layout_gravity="center_horizontal"
+            android:headerBackground="@color/colorPrimary" />
+    </ViewFlipper>
+</LinearLayout>

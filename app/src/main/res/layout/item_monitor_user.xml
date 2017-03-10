@@ -1,0 +1,184 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<!--
+  ~
+  ~   Copyright (C) 2016 author : 梁桂栋
+  ~
+  ~   Licensed under the Apache License, Version 2.0 (the "License");
+  ~   you may not use this file except in compliance with the License.
+  ~   You may obtain a copy of the License at
+  ~
+  ~        http://www.apache.org/licenses/LICENSE-2.0
+  ~
+  ~   Unless required by applicable law or agreed to in writing, software
+  ~   distributed under the License is distributed on an "AS IS" BASIS,
+  ~   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  ~   See the License for the specific language governing permissions and
+  ~   limitations under the License.
+  ~
+  ~   Email me : stonelavender@hotmail.com
+  ~
+  -->
+
+
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:background="@color/md_white_1000"
+    android:paddingBottom="12dp"
+    android:paddingTop="12dp">
+
+    <ImageView
+        android:id="@+id/itemMonitorUserHead"
+        android:layout_width="60dp"
+        android:layout_height="60dp"
+        android:layout_marginLeft="16dp"
+        android:layout_marginRight="16dp"
+        android:src="@drawable/boy" />
+
+    <TextView
+        android:id="@+id/itemMonitorName"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="4dp"
+        android:layout_toRightOf="@id/itemMonitorUserHead"
+        android:lines="1"
+        android:text="佛挡杀佛"
+        android:textColor="@color/md_grey_800"
+        android:textSize="20sp" />
+
+    <TextView
+        android:id="@+id/itemMonitorInfo"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_below="@id/itemMonitorName"
+        android:layout_marginTop="8dp"
+        android:layout_toRightOf="@id/itemMonitorUserHead"
+        android:textColor="@color/md_grey_700"
+        android:textSize="18sp" />
+
+    <dong.lan.mapeye.views.customsView.LabelTextView
+        android:id="@+id/itemMonitorStatus"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentRight="true"
+        android:layout_marginLeft="8dp"
+        android:layout_marginRight="8dp"
+        android:paddingBottom="2dp"
+        android:paddingLeft="8dp"
+        android:paddingRight="8dp"
+        android:paddingTop="2dp"
+        android:text="监控中"
+        android:textColor="@color/md_white_1000"
+        android:textSize="14sp"
+        app:radius="6dp" />
+
+    <dong.lan.mapeye.views.customsView.LabelTextView
+        android:id="@+id/itemMonitorTag"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_toLeftOf="@id/itemMonitorStatus"
+        android:paddingBottom="2dp"
+        android:paddingLeft="8dp"
+        android:paddingRight="8dp"
+        android:paddingTop="2dp"
+        android:text="待认证"
+        android:textColor="@color/md_white_1000"
+        android:textSize="14sp"
+        app:bg_color="@color/colorAccent"
+        app:radius="6dp" />
+
+    <View
+        android:layout_marginLeft="8dp"
+        android:layout_marginRight="8dp"
+        android:layout_width="match_parent"
+        android:layout_height="1px"
+        android:layout_below="@id/itemMonitorInfo"
+        android:layout_marginTop="8dp"
+        android:background="@color/md_grey_500" />
+
+    <dong.lan.mapeye.views.customsView.ToggleCheckBox
+        android:layout_marginLeft="10dp"
+        android:layout_marginRight="10dp"
+        android:layout_below="@id/itemMonitorInfo"
+        android:layout_marginTop="8dp"
+        android:layout_alignParentRight="true"
+        android:id="@+id/toggleSwitcher"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:background="@drawable/toggle_arrow"
+        android:button="@null" />
+
+    <LinearLayout
+        android:visibility="gone"
+        android:id="@+id/monitorHandleLayout"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_below="@id/itemMonitorInfo"
+        android:layout_marginTop="16dp"
+        android:orientation="horizontal">
+
+        <ImageButton
+            android:id="@+id/startMonitor"
+            android:layout_width="wrap_content"
+            android:layout_height="match_parent"
+            android:background="@null"
+            android:paddingLeft="16dp"
+            android:paddingRight="16dp"
+            android:src="@drawable/start_48"
+            android:tint="@color/md_grey_800" />
+
+        <ImageButton
+            android:id="@+id/stopMonitor"
+            android:layout_width="wrap_content"
+            android:layout_height="match_parent"
+            android:background="@null"
+            android:paddingLeft="16dp"
+            android:paddingRight="16dp"
+            android:src="@drawable/pause_48"
+            android:tint="@color/md_grey_800" />
+
+
+        <ImageButton
+            android:id="@+id/removeMonitor"
+            android:layout_width="wrap_content"
+            android:layout_height="match_parent"
+            android:background="@null"
+            android:paddingLeft="16dp"
+            android:paddingRight="16dp"
+            android:src="@drawable/delete_48"
+            android:tint="@color/md_grey_800" />
+
+        <ImageButton
+            android:id="@+id/setLocationSpeed"
+            android:layout_width="wrap_content"
+            android:layout_height="match_parent"
+            android:background="@null"
+            android:paddingLeft="16dp"
+            android:paddingRight="16dp"
+            android:src="@drawable/location_48"
+            android:tint="@color/md_grey_800" />
+
+
+        <ImageButton
+            android:id="@+id/sendClientInfo"
+            android:layout_width="wrap_content"
+            android:layout_height="match_parent"
+            android:background="@null"
+            android:paddingLeft="16dp"
+            android:paddingRight="16dp"
+            android:src="@drawable/mobile_48"
+            android:tint="@color/md_grey_800" />
+        <ImageButton
+            android:id="@+id/timerTask"
+            android:layout_width="wrap_content"
+            android:layout_height="match_parent"
+            android:background="@null"
+            android:paddingLeft="16dp"
+            android:paddingRight="16dp"
+            android:src="@drawable/clock_48"
+            android:tint="@color/md_grey_800" />
+
+    </LinearLayout>
+</RelativeLayout>

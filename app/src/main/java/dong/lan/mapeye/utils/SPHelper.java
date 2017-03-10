@@ -13,14 +13,23 @@ public class SPHelper {
     public static final String SP_NAME ="map_eye";
     public static SharedPreferences sharedPreferences;
     public static void init(Context context){
-         sharedPreferences =  context.getApplicationContext().getSharedPreferences(SP_NAME,Context.MODE_PRIVATE);
+        if(sharedPreferences==null)
+          sharedPreferences =  context.getApplicationContext().getSharedPreferences(SP_NAME,Context.MODE_PRIVATE);
     }
 
-    public static void addOrUpdate(String key,String value){
+    public static void put(String key, String value){
         sharedPreferences.edit().putString(key,value).apply();
     }
 
     public static String get(String key){
         return sharedPreferences.getString(key,"");
+    }
+
+    public static void putBoolean(String key,boolean value){
+        sharedPreferences.edit().putBoolean(key,value).apply();
+    }
+
+    public static boolean getBoolean(String key){
+        return sharedPreferences.getBoolean(key,false);
     }
 }

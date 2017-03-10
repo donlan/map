@@ -12,10 +12,10 @@ import java.util.HashMap;
  * 日期：  7/3/2016  17:35.
  * Email: 760625325@qq.com
  */
-public class SoundHelper {
+class SoundHelper {
 
-    HashMap<Integer, Integer> soundMap = new HashMap<>();
-    SoundPool soundPool;
+    private HashMap<Integer, Integer> soundMap = new HashMap<>();
+    private SoundPool soundPool;
 
 
     public SoundHelper init(int maxStreams) {
@@ -46,6 +46,7 @@ public class SoundHelper {
     }
 
     public void release() {
+        soundMap.clear();
         soundMap = null;
         soundPool.release();
     }

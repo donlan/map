@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  ~
+  ~   Copyright (C) 2017 author : 梁桂栋
+  ~
+  ~   Licensed under the Apache License, Version 2.0 (the "License");
+  ~   you may not use this file except in compliance with the License.
+  ~   You may obtain a copy of the License at
+  ~
+  ~        http://www.apache.org/licenses/LICENSE-2.0
+  ~
+  ~   Unless required by applicable law or agreed to in writing, software
+  ~   distributed under the License is distributed on an "AS IS" BASIS,
+  ~   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  ~   See the License for the specific language governing permissions and
+  ~   limitations under the License.
+  ~
+  ~   Email me : stonelavender@hotmail.com
+  ~
+  -->
+
+<rotate xmlns:android="http://schemas.android.com/apk/res/android"
+    android:pivotX="50%"
+    android:pivotY="50%"
+    android:toDegrees="360">
+
+    <shape
+        android:innerRadiusRatio="10"
+        android:shape="ring"
+        android:thicknessRatio="10"
+        android:useLevel="false">
+
+        <gradient
+            android:centerColor="@color/md_green_100"
+            android:centerY="0.5"
+            android:endColor="@color/md_orange_100"
+            android:startColor="@color/md_white_1000"
+            android:type="sweep"
+            android:useLevel="false" />
+    </shape>
+</rotate>

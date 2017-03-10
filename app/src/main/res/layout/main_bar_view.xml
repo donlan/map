@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:gravity="center_vertical"
+    android:orientation="horizontal">
+
+    <ImageButton
+        android:id="@+id/bar_logout"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:background="@null"
+        android:src="@drawable/logout" />
+
+
+    <ImageButton
+        android:id="@+id/bar_add"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentRight="true"
+        android:layout_gravity="end"
+        android:layout_marginLeft="16dp"
+        android:layout_marginRight="16dp"
+        android:background="@null"
+        android:contentDescription="@string/app_name"
+        android:src="@drawable/add_48" />
+
+    <ImageButton
+        android:id="@+id/bar_add_user"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="end"
+        android:layout_toLeftOf="@id/bar_add"
+        android:background="@null"
+        android:contentDescription="@string/app_name"
+        android:src="@drawable/user_plus_48" />
+
+
+
+
+</RelativeLayout>

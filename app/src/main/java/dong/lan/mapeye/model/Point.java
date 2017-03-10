@@ -38,4 +38,8 @@ public class Point extends RealmObject {
     public void setLng(double lng) {
         this.lng = lng;
     }
+
+    public LatLng toLatlng(){
+        return new LatLng(lat,lng);
+    }
 }

@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <declare-styleable name="LabelTextView">
+        <attr name="bg_color" format="color"/>
+        <attr name="radius" format="dimension"/>
+        <attr name="clickAnimation" format="boolean"/>
+        <attr name="shadowRadius" format="dimension"/>
+        <attr name="shadowColor" format="color"/>
+        <attr name="strokeWidth" format="dimension"/>
+    </declare-styleable>
+    <declare-styleable name="ToggleButton">
+        <attr name="tb_uncheck_color" format="color"/>
+        <attr name="tb_check_color" format="color" />
+        <attr name="tb_check_bg_color" format="color" />
+        <attr name="tb_uncheck_bg_color" format="color"/>
+        <attr name="tb_circle_radius"  format="dimension"/>
+        <attr name="tb_shadow_color" format="color"/>
+        <attr name="tb_shadow_radius" format="dimension"/>
+    </declare-styleable>
+</resources>

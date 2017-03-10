@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout
-    xmlns:android="http://schemas.android.com/apk/res/android"
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="fill_parent"
     android:layout_height="fill_parent"
     android:orientation="vertical">
@@ -37,15 +37,15 @@
             android:background="@drawable/search"
             android:gravity="center"
             android:onClick="search" />
+
         <ProgressBar
-            android:visibility="gone"
             android:id="@+id/search_pro"
             android:layout_width="30dp"
             android:layout_height="30dp"
             android:indeterminate="false"
-            android:indeterminateDuration="300"
             android:indeterminateDrawable="@drawable/refresh_progress_bar"
-            />
+            android:indeterminateDuration="300"
+            android:visibility="gone" />
 
     </LinearLayout>
 
@@ -59,70 +59,76 @@
         android:visibility="gone">
 
         <Button
-            android:textColor="@color/md_white_1000"
-            android:text="开始"
             android:id="@+id/start"
             android:layout_width="45.0dip"
             android:layout_height="45.0dip"
             android:layout_marginLeft="13.0dip"
             android:layout_marginRight="13.0dip"
             android:background="@drawable/circle_green"
-            android:onClick="startDown" />
+            android:onClick="startDown"
+            android:text="开始"
+            android:textColor="@color/md_white_1000" />
 
         <Button
-            android:textColor="@color/md_white_1000"
-            android:text="停止"
             android:id="@+id/stop"
             android:layout_width="45.0dip"
             android:layout_height="45.0dip"
             android:background="@drawable/circle_rect_blue"
-            android:onClick="pauseDown" />
+            android:onClick="pauseDown"
+            android:text="停止"
+            android:textColor="@color/md_white_1000" />
 
         <Button
-            android:textColor="@color/md_white_1000"
-            android:text="删除"
             android:id="@+id/del"
             android:layout_width="45.0dip"
             android:layout_height="45.0dip"
             android:layout_marginLeft="13.0dip"
             android:layout_marginRight="13.0dip"
             android:background="@drawable/circle_rect_red"
-            android:onClick="cancelDown" />
+            android:onClick="cancelDown"
+            android:text="删除"
+            android:textColor="@color/md_white_1000" />
     </LinearLayout>
 
     <LinearLayout
         android:id="@+id/city_list"
-        android:gravity="center"
         android:layout_width="fill_parent"
         android:layout_height="40.0dip"
         android:layout_marginTop="10.0dip"
+        android:gravity="center"
         android:orientation="horizontal">
 
-        <Button
+        <dong.lan.mapeye.views.customsView.LabelTextView
             android:id="@+id/clButton"
             android:layout_width="fill_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginLeft="10.0dip"
-            android:layout_marginRight="10.0dip"
+            android:layout_height="match_parent"
+            android:layout_marginLeft="16dp"
+            android:layout_marginRight="16dp"
             android:layout_weight="1.0"
-            android:background="@drawable/circle_rect_red"
+            android:gravity="center"
             android:onClick="clickCityListButton"
             android:padding="10.0dip"
             android:text="@string/city_list"
-            android:textColor="@color/md_brown_900" />
+            android:textColor="@color/md_white_1000"
+            android:textSize="16sp"
+            app:bg_color="@color/colorPrimary"
+            app:radius="20dp" />
 
-        <Button
+        <dong.lan.mapeye.views.customsView.LabelTextView
             android:id="@+id/localButton"
             android:layout_width="fill_parent"
             android:layout_height="wrap_content"
-            android:layout_marginLeft="10.0dip"
-            android:layout_marginRight="10.0dip"
+            android:layout_marginLeft="16dp"
+            android:layout_marginRight="16dp"
             android:layout_weight="1.0"
-            android:background="@drawable/circle_rect_green"
+            android:gravity="center"
             android:onClick="clickLocalMapListButton"
             android:padding="10.0dip"
             android:text="@string/city_download_manager"
-            android:textColor="@color/md_brown_900" />
+            android:textColor="@color/md_white_1000"
+            android:textSize="16sp"
+            app:bg_color="@color/md_deep_orange_400"
+            app:radius="20dp" />
     </LinearLayout>
 
     <LinearLayout

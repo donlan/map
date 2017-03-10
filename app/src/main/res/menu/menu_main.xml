@@ -3,63 +3,22 @@
     xmlns:tools="http://schemas.android.com/tools"
     tools:context="dong.lan.mapeye.MainActivity">
     <item
-        android:id="@+id/action_settings"
-        android:orderInCategory="100"
-        android:title="@string/action_settings"
-        app:showAsAction="never" />
-    <item
-        android:id="@+id/action_offline_map"
-        android:orderInCategory="101"
-        android:title="@string/download_offline_map"
-        app:showAsAction="never" />
-    <item
-        android:id="@+id/convert"
-        android:orderInCategory="102"
-        android:title="坐标转换"
-        app:showAsAction="never">
+        android:orderInCategory="1"
+        android:title="@string/map_display_type">
         <menu>
             <item
-                android:id="@+id/convert_gps"
-                android:title="GPS" />
+                android:id="@+id/map_normal"
+                android:title="@string/normal_map_display" />
             <item
-                android:id="@+id/convert_common"
-                android:title="COMMON" />
-            <item
-                android:id="@+id/convert_no"
-                android:title="NO" />
+                android:id="@+id/map_satellite"
+                android:title="@string/satellite_map_display" />
         </menu>
     </item>
     <item
-        android:orderInCategory="104"
-        android:title="地图类型">
-        <menu>
-            <item
-                android:id="@+id/map_nomon"
-                android:title="普通地图" />
-            <item
-                android:id="@+id/map_earth"
-                android:title="卫星地图" />
-        </menu>
-    </item>
+        android:id="@+id/rename"
+        android:orderInCategory="2"
+        android:title="重命名" />
     <item
-        android:id="@+id/action_test"
-        android:orderInCategory="103"
-        android:title="测试"
-        app:showAsAction="never" />
-    <item
-        android:id="@+id/action_to_collect"
-        android:orderInCategory="105"
-        android:title="采集定位坐标"
-        app:showAsAction="never" />
-
-    <item
-        android:id="@+id/action_set_distance"
-        android:orderInCategory="106"
-        android:title="设置距离监听"
-        app:showAsAction="never" />
-    <item
-        android:id="@+id/action_set_padding"
-        android:orderInCategory="106"
-        android:title="设置北斗百度偏移量"
-        app:showAsAction="never" />
+        android:id="@+id/test"
+        android:title="测试" />
 </menu>

@@ -73,7 +73,6 @@ public final class PointConvert {
     public static LatLng convert(double lat, double lng) {
         lat +=LAT_GAP;
         lng +=LNG_GAP;
-        if (BuildConfig.DEBUG) Log.d("PointConvert", "lat,lng:" + lat + " , " + lng);
         return new LatLng(lat, lng);
     }
 }

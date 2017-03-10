@@ -1,0 +1,61 @@
+<?xml version="1.0" encoding="utf-8"?>
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
+
+    <include layout="@layout/action_bar" />
+
+    <com.baidu.mapapi.map.MapView
+        android:id="@+id/mapView"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_marginTop="@dimen/action_bar_height" />
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_gravity="bottom"
+        android:layout_marginBottom="16dp"
+        android:gravity="center"
+        android:orientation="horizontal">
+
+        <dong.lan.mapeye.views.customsView.LabelTextView
+            android:id="@+id/build_fence"
+            style="@style/addRecordButton"
+            android:text="围栏"
+            android:textColor="@color/md_white_1000"
+            app:bg_color="@color/md_blue_500"
+            app:clickAnimation="true"
+            app:radius="@dimen/addRecordBtnRadiusSize" />
+
+        <dong.lan.mapeye.views.customsView.LabelTextView
+            android:id="@+id/build_route"
+            style="@style/addRecordButton"
+            android:layout_marginLeft="16dp"
+            android:layout_marginRight="16dp"
+            android:text="路径"
+            app:bg_color="@color/md_green_600"
+            app:clickAnimation="true"
+            app:radius="@dimen/addRecordBtnRadiusSize" />
+
+
+        <dong.lan.mapeye.views.customsView.LabelTextView
+            android:id="@+id/build_circle"
+            style="@style/addRecordButton"
+            android:layout_marginLeft="16dp"
+            android:layout_marginRight="16dp"
+            android:text="半径"
+            app:bg_color="@color/md_red_500"
+            app:clickAnimation="true"
+            app:radius="@dimen/addRecordBtnRadiusSize" />
+
+        <dong.lan.mapeye.views.customsView.LabelTextView
+            android:id="@+id/reset_record"
+            style="@style/addRecordButton"
+            android:text="重置"
+            app:bg_color="@color/md_orange_600"
+            app:clickAnimation="true"
+            app:radius="@dimen/addRecordBtnRadiusSize" />
+    </LinearLayout>
+</FrameLayout>
