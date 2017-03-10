@@ -1,0 +1,50 @@
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="65dp"
+    android:background="@color/transparent"
+    android:orientation="horizontal">
+
+
+    <Button
+        android:id="@+id/btn_guestlogin"
+        android:layout_width="0dp"
+        android:layout_height="fill_parent"
+        android:layout_weight="1"
+        android:background="@color/transparent"
+        android:drawablePadding="5dp"
+        android:drawableTop="@drawable/tencent_tls_ui_visitor"
+        android:gravity="center"
+        android:padding="5dp"
+        android:text="游客登录"
+        android:textColor="@color/tencent_tls_ui_white" />
+
+    <Button
+        android:id="@+id/btn_qqlogin"
+        android:layout_width="0dp"
+        android:layout_height="fill_parent"
+        android:layout_weight="1"
+        android:background="@color/transparent"
+        android:drawablePadding="5dp"
+        android:drawableTop="@drawable/tencent_tls_ui_qq"
+        android:gravity="center"
+        android:padding="5dp"
+        android:text="QQ登录"
+        android:textColor="@color/tencent_tls_ui_white" />
+
+    <Button
+        android:id="@+id/btn_wxlogin"
+        android:layout_width="0dp"
+        android:layout_height="fill_parent"
+        android:layout_weight="1"
+        android:background="@color/transparent"
+        android:drawablePadding="5dp"
+        android:drawableTop="@drawable/tencent_tls_ui_wechat"
+        android:gravity="center"
+        android:padding="5dp"
+        android:text="微信登录"
+        android:textColor="@color/tencent_tls_ui_white" />
+
+</LinearLayout>
+
+

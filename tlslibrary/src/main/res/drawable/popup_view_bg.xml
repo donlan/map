@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<shape xmlns:android="http://schemas.android.com/apk/res/android"
+    android:shape="rectangle"
+    >
+    <corners android:topLeftRadius="@dimen/tencent_tls_ui_btn_radius"
+        android:topRightRadius="@dimen/tencent_tls_ui_btn_radius"
+        android:bottomLeftRadius="12dp"
+        android:bottomRightRadius="12dp"
+        />
+    <solid android:color="#55787878"/>
+
+</shape>
