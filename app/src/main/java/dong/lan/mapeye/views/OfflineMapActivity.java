@@ -2,11 +2,7 @@ package dong.lan.mapeye.views;
 
 import android.content.Context;
 import android.content.DialogInterface;
-import android.graphics.Color;
-import android.os.Build;
 import android.os.Bundle;
-import android.text.Editable;
-import android.text.TextWatcher;
 import android.util.Log;
 import android.view.View;
 import android.view.ViewGroup;
@@ -294,6 +290,33 @@ public class OfflineMapActivity extends BaseActivity implements MKOfflineMapList
 
     }
 
+    private String getFormatDataSize(int si) {
+        return this.formatDataSize(si);
+    }
+
+    private static class City {
+
+        String cityName;
+        int cityID;
+        int citySize;
+
+        City(String cityName, int ID, int citySize) {
+            this.cityName = cityName;
+            this.cityID = ID;
+            this.citySize = citySize;
+        }
+    }
+
+    public static class ViewHolder {
+        TextView cityName;
+        TextView cityID;
+        TextView citySize;
+
+        public TextView get(View view, int id) {
+            return (TextView) view.findViewById(id);
+        }
+    }
+
     /**
      * 离线地图管理列表适配器
      */
@@ -385,33 +408,6 @@ public class OfflineMapActivity extends BaseActivity implements MKOfflineMapList
             viewHolder.cityName.setText(city.cityName);
             viewHolder.citySize.setText(getFormatDataSize(city.citySize));
             return convertView;
-        }
-    }
-
-    private String getFormatDataSize(int si) {
-        return this.formatDataSize(si);
-    }
-
-    private static class City {
-
-        City(String cityName, int ID, int citySize) {
-            this.cityName = cityName;
-            this.cityID = ID;
-            this.citySize = citySize;
-        }
-
-        String cityName;
-        int cityID;
-        int citySize;
-    }
-
-    public static class ViewHolder {
-        TextView cityName;
-        TextView cityID;
-        TextView citySize;
-
-        public TextView get(View view, int id) {
-            return (TextView) view.findViewById(id);
         }
     }
 }

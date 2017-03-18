@@ -26,9 +26,6 @@ import dong.lan.mapeye.R;
  */
 public class CollectPointsActivity extends BaseActivity implements BDLocationListener {
 
-    private LocationClient locationClient;
-    private ClipboardManager clipboardManager = null;
-    private boolean getPosition = false;
     @BindView(R.id.collect_content_tv)
     TextView conllectContent;
     @BindView(R.id.collect_lat_tv)
@@ -37,6 +34,10 @@ public class CollectPointsActivity extends BaseActivity implements BDLocationLis
     EditText lngEt;
     @BindView(R.id.collect_save)
     TextView save;
+    Unbinder unbinder;
+    private LocationClient locationClient;
+    private ClipboardManager clipboardManager = null;
+    private boolean getPosition = false;
 
     @OnClick(R.id.collect_save)
     public void save() {
@@ -57,7 +58,6 @@ public class CollectPointsActivity extends BaseActivity implements BDLocationLis
         return true;
     }
 
-    Unbinder unbinder;
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);

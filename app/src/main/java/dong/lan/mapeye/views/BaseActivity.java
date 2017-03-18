@@ -18,9 +18,8 @@ import dong.lan.mapeye.R;
 public class BaseActivity extends AppCompatActivity {
 
 
-    private ProgressDialog progressDialog;
-
     protected Unbinder unbinder;
+    private ProgressDialog progressDialog;
 
     public void toast(String s) {
         Toast.makeText(this, s, Toast.LENGTH_SHORT).show();
