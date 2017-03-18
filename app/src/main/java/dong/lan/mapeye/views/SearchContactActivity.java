@@ -34,7 +34,6 @@ import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.TextView;
 
-import com.tencent.TIMUserProfile;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -42,11 +41,12 @@ import java.util.List;
 import butterknife.BindView;
 import butterknife.ButterKnife;
 import butterknife.OnClick;
+import cn.jpush.im.android.api.model.UserInfo;
+import dong.lan.library.LabelTextView;
 import dong.lan.mapeye.R;
 import dong.lan.mapeye.contracts.SearchContact;
 import dong.lan.mapeye.model.users.User;
 import dong.lan.mapeye.presenter.SearchContactPresenter;
-import dong.lan.mapeye.views.customsView.LabelTextView;
 
 /**
  * Created by 梁桂栋 on 16-11-16 ： 上午10:56.
@@ -84,7 +84,7 @@ public class SearchContactActivity extends BaseActivity implements SearchContact
     public void startQueryContact() {
         if (TextUtils.isEmpty(queryText.getText().toString()))
             return;
-        presenter.queryContact(curPhoneCode + queryText.getText().toString());
+        presenter.queryContact(queryText.getText().toString());
     }
 
     private SearchContactPresenter presenter;
@@ -99,10 +99,10 @@ public class SearchContactActivity extends BaseActivity implements SearchContact
 
 
     Adapter adapter;
-    List<TIMUserProfile> users;
+    List<UserInfo> users;
 
     @Override
-    public void setContactsAdapter(List<TIMUserProfile> users) {
+    public void setContactsAdapter(List<UserInfo> users) {
         if (adapter == null) {
             this.users = new ArrayList<>();
             this.users.addAll(users);
@@ -134,7 +134,7 @@ public class SearchContactActivity extends BaseActivity implements SearchContact
 
         @Override
         public void onBindViewHolder(ViewHolder holder, int position) {
-            TIMUserProfile u = users.get(position);
+            UserInfo u = users.get(position);
             holder.name.setText(User.getUserDescriber(u));
         }
 

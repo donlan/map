@@ -35,15 +35,11 @@ import com.baidu.location.BDLocation;
 import com.baidu.location.BDLocationListener;
 import com.baidu.location.LocationClientOption;
 import com.baidu.mapapi.model.LatLng;
+import com.baidu.mapapi.utils.DistanceUtil;
 import com.orhanobut.logger.Logger;
-import com.tencent.TIMCustomElem;
-import com.tencent.TIMElem;
-import com.tencent.TIMElemType;
-import com.tencent.TIMMessage;
-import com.tencent.TIMTextElem;
-import com.tencent.qcloud.tlslibrary.helper.JMHelper;
 
 import java.util.HashMap;
+import java.util.LinkedList;
 
 import cn.jpush.im.android.api.model.Message;
 import cn.jpush.im.api.BasicCallback;
@@ -64,6 +60,7 @@ import dong.lan.mapeye.task.MonitorTimerTask;
 import dong.lan.mapeye.utils.NetUtils;
 import dong.lan.mapeye.utils.PolygonHelper;
 import dong.lan.mapeye.utils.SPHelper;
+import dong.lan.mapeye.utils.Utils;
 import dong.lan.mapeye.views.AffairHandleActivity;
 import dong.lan.mapeye.views.UserClientInfoActivity;
 import dong.lan.mapeye.views.record.RecordDetailActivity;
@@ -92,6 +89,7 @@ public class MonitorManager {
     private Uri alertSound = null;
     private Realm defaultRealm;
     private NotificationManager notificationManager;
+    private LinkedList<LocationEntity> locationList;
 
     private MonitorManager() {
         monitor = new HashMap<>();
@@ -200,10 +198,57 @@ public class MonitorManager {
         if (monitorRecode != null) {
             if (defaultRealm != null) {
                 defaultRealm.beginTransaction();
-                monitorRecode.getLocations().add(defaultRealm.copyToRealm(traceLocation));
+                monitorRecode.getLocations().add(traceLocation);
                 defaultRealm.commitTransaction();
             }
         }
+    }
+
+
+    /***
+     * 平滑策略代码实现方法，主要通过对新定位和历史定位结果进行速度评分，
+     * 来判断新定位结果的抖动幅度，如果超过经验值，则判定为过大抖动，进行平滑处理,若速度过快，
+     * 则推测有可能是由于运动速度本身造成的，则不进行低速平滑处理 ╭(●｀∀´●)╯
+     *
+     */
+    private LocationEntity Algorithm(BDLocation location) {
+        double curSpeed = 0;
+        LocationEntity newLocation = new LocationEntity();
+        if (locationList.isEmpty() || locationList.size() < 2) {
+            LocationEntity temp = new LocationEntity();
+            temp.location = location;
+            temp.time = System.currentTimeMillis();
+            locationList.add(temp);
+        } else {
+            if (locationList.size() > 5)
+                locationList.removeFirst();
+            double score = 0;
+            for (int i = 0; i < locationList.size(); ++i) {
+                LatLng lastPoint = new LatLng(locationList.get(i).location.getLatitude(),
+                        locationList.get(i).location.getLongitude());
+                LatLng curPoint = new LatLng(location.getLatitude(), location.getLongitude());
+                double distance = DistanceUtil.getDistance(lastPoint, curPoint);
+                curSpeed = distance / (System.currentTimeMillis() - locationList.get(i).time) / 1000;
+                score += curSpeed * Utils.EARTH_WEIGHT[i];
+            }
+            if (score > 0.00000999 && score < 0.00005) { // 经验值,开发者可根据业务自行调整，也可以不使用这种算法
+                location.setLongitude(
+                        (locationList.get(locationList.size() - 1).location.getLongitude() + location.getLongitude())
+                                / 2);
+                location.setLatitude(
+                        (locationList.get(locationList.size() - 1).location.getLatitude() + location.getLatitude())
+                                / 2);
+                newLocation.iscalculate = true;
+            } else {
+                newLocation.iscalculate = false;
+            }
+
+            newLocation.location = location;
+            newLocation.time = System.currentTimeMillis();
+            locationList.add(newLocation);
+
+        }
+        return newLocation;
     }
 
     /**
@@ -251,66 +296,6 @@ public class MonitorManager {
         return bus.ofType(tClass);
     }
 
-    /**
-     * 接收到从JMessage传递的消息，并做分发
-     *
-     * @param message
-     */
-    public void dispatchMessage(TIMMessage message) {
-        for (int i = 0; i < message.getElementCount(); i++) {
-            TIMElem elem = message.getElement(i);
-            TIMElemType type = elem.getType();
-            if (type.equals(TIMElemType.Custom)) {
-                TIMCustomElem customElem = (TIMCustomElem) elem;
-                String data = new String(customElem.getData());
-                BaseMessage baseMessage = MessageHelper.getInstance()
-                        .toTarget(data, BaseMessage.class);
-                Logger.d(data + "+" + message.getCustomStr() + "+" + baseMessage.getCmd());
-                handleCustomMessage(message, baseMessage);
-            } else if (type.equals(TIMElemType.Text)) {
-                TIMTextElem textElem = (TIMTextElem) elem;
-                int cmd = message.getCustomInt();
-                Logger.d(textElem.getText() + "," + message.getCustomStr() + "," + cmd);
-            } else {
-                Logger.d(message.getSender() + "," + type);
-            }
-        }
-    }
-
-    private void handleCustomMessage(TIMMessage message, BaseMessage baseMessage) {
-        int cmd = baseMessage.getCmd();
-        Logger.d("" + cmd);
-        switch (cmd) {
-//            case CMDMessage.CMD_MONITOR_START:
-//                startMonitorLocation(message, baseMessage.getExtras());
-//                break;
-//            case CMDMessage.CMD_MONITOR_STOP:
-//                stopMonitorLocation();
-//                break;
-//            case CMDMessage.CMD_MONITORING:
-//                String[] ids = MessageHelper.parseRecordContactId(message.getCustomStr());
-//                long id = Contact.createId(ids[0], ids[1]);
-//                UserManager.instance().updateContactStatus(id, Contact.STATUS_MONITORING);
-//                break;
-//            case CMDMessage.CMD_SET_LOCATION_SPEED:
-//                int time = baseMessage.getLocationSpeed();
-//                if (locationService.isRunning()) {
-//                    LocationClientOption option = locationService.getDefaultLocationClientOption();
-//                    option.setScanSpan(time * 1000);
-//                    if (time == 1) {
-//                        option.setLocationNotify(true);
-//                    } else {
-//                        option.setLocationNotify(false);
-//                    }
-//                    locationService.setLocationOption(option);
-//                    locationService.restart();
-//                }
-//                break;
-//            case CMDMessage.CMD_MONITOR_LOCATING:
-//                handlerMonitorLocation(message, baseMessage);
-//                break;
-        }
-    }
 
 
     /**
@@ -429,8 +414,9 @@ public class MonitorManager {
                 @Override
                 public void onReceiveLocation(BDLocation bdLocation) {
                     if (bdLocation != null) {
+                        LocationEntity locationEntity = Algorithm(bdLocation);
                         JMCenter.sendLocation(CMDMessage.CMD_MONITOR_LOCATING,
-                                recordId, identifier, toUserId, bdLocation);
+                                recordId, identifier, toUserId, locationEntity.location);
                     }
                 }
             });
@@ -466,6 +452,7 @@ public class MonitorManager {
             clientInfo.setNetStatus(netType);
             JMCenter.replyMobileInfo(recordId, identifier, clientInfo);
         }
+        Logger.d(""+batteryInfo);
     }
 
     public void notifyClientInfo(String recordId, String identifier, String clientInfoJson) {
@@ -491,6 +478,24 @@ public class MonitorManager {
         manager.notify(identifier.hashCode(), builder.build());
     }
 
+
+    /**
+     * 删除定时监听任务记录
+     * @param timer
+     * @param realm
+     */
+
+    public void deleteMonitor(final MonitorTimer timer, Realm realm){
+        final long createTime = timer.getCreateTime();
+        realm.executeTransactionAsync(new Realm.Transaction() {
+            @Override
+            public void execute(Realm realm) {
+                realm.where(MonitorTimer.class).equalTo("createTime",createTime)
+                        .findAll().deleteAllFromRealm();
+            }
+        });
+    }
+
     /**
      * 处理监听任务 开启/关闭
      *
@@ -512,7 +517,7 @@ public class MonitorManager {
         timerIntent.putExtra(Config.TIMER_STATUS, isChecked);
         timerIntent.putExtra(Config.TIMER_TASK_ID, timer.getCreateTime());
         timerIntent.putExtra(Config.KEY_RECORD_ID, timer.getRecord().getId());
-        timerIntent.putExtra(Config.KEY_IDENTIFIER, timer.getUser().getIdentifier());
+        timerIntent.putExtra(Config.KEY_IDENTIFIER, timer.getUser().identifier());
 
 
         PendingIntent startPending = PendingIntent.getService(
@@ -530,7 +535,7 @@ public class MonitorManager {
             timerIntent.putExtra(Config.TIMER_STATUS, false);
             timerIntent.putExtra(Config.TIMER_TASK_ID, timer.getCreateTime());
             timerIntent.putExtra(Config.KEY_RECORD_ID, timer.getRecord().getId());
-            timerIntent.putExtra(Config.KEY_IDENTIFIER, timer.getUser().getIdentifier());
+            timerIntent.putExtra(Config.KEY_IDENTIFIER, timer.getUser().identifier());
             PendingIntent endPending = PendingIntent.getService(
                     context,
                     Config.REQ_CODE_END_TIMER,
@@ -553,7 +558,7 @@ public class MonitorManager {
         }
         if (contact.getStatus() != Contact.STATUS_MONITORING
                 && contact.getStatus() != Contact.STATUS_WAITING) {
-            toast(contact.getUser().getUsername() + " 没有启动位置监听");
+            toast(contact.getUser().username() + " 没有启动位置监听");
             return;
         }
 
@@ -561,8 +566,8 @@ public class MonitorManager {
         final long id = contact.getId();
         toast("开始发送定位结束指令给 " + user.displayName());
         Message jmesage = new JMCenter.JMessage(CMDMessage.CMD_MONITOR_STOP,
-                JMHelper.getJUsername(user.getIdentifier()), "开始监听")
-                .appendStringExtra(JMCenter.EXTRAS_IDENTIFIER, user.getIdentifier())
+                user.username(), "开始监听")
+                .appendStringExtra(JMCenter.EXTRAS_IDENTIFIER, user.identifier())
                 .appendStringExtra(JMCenter.EXTRAS_RECORD_ID, recordId).build();
         JMCenter.sendMessage(jmesage, new BasicCallback() {
             @Override
@@ -603,7 +608,7 @@ public class MonitorManager {
             return;
         }
         if (contact.getTag() != Contact.TAG_AGREE) {
-            toast(contact.getUser().getUsername() + " 没有与你进行位置共享绑定");
+            toast(contact.getUser().username() + " 没有与你进行位置共享绑定");
             return;
         }
         if (contact.getStatus() == Contact.STATUS_MONITORING) {
@@ -616,8 +621,8 @@ public class MonitorManager {
         toast("开始发送定位指令给 " + user.displayName());
 
         Message jmesage = new JMCenter.JMessage(CMDMessage.CMD_MONITOR_START,
-                JMHelper.getJUsername(user.getIdentifier()), "开始监听")
-                .appendStringExtra(JMCenter.EXTRAS_IDENTIFIER, user.getIdentifier())
+                user.username(), "开始监听")
+                .appendStringExtra(JMCenter.EXTRAS_IDENTIFIER, user.identifier())
                 .appendStringExtra(JMCenter.EXTRAS_RECORD_ID, record.getId()).build();
         JMCenter.sendMessage(jmesage, new BasicCallback() {
             @Override
@@ -645,5 +650,17 @@ public class MonitorManager {
                 }
             }
         });
+    }
+
+
+    /**
+     * 封装定位结果和时间的实体类
+     *
+     * @author baidu
+     */
+    public static class LocationEntity {
+        BDLocation location;
+        long time;
+        boolean iscalculate;
     }
 }

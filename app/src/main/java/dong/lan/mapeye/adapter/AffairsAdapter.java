@@ -27,10 +27,10 @@ import android.widget.TextView;
 
 import butterknife.BindView;
 import butterknife.ButterKnife;
+import dong.lan.library.LabelTextView;
 import dong.lan.mapeye.R;
 import dong.lan.mapeye.model.Affair;
 import dong.lan.mapeye.utils.DateUtils;
-import dong.lan.mapeye.views.customsView.LabelTextView;
 import io.realm.RealmResults;
 
 /**

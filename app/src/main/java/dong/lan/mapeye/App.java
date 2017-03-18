@@ -2,29 +2,25 @@ package dong.lan.mapeye;
 
 import android.app.Application;
 import android.content.Context;
+import android.util.Log;
 
-import com.amap.api.maps.AMap;
 import com.baidu.mapapi.SDKInitializer;
 import com.orhanobut.logger.Logger;
-import com.tencent.TIMGroupReceiveMessageOpt;
-import com.tencent.TIMManager;
-import com.tencent.TIMMessage;
-import com.tencent.TIMMessageListener;
-import com.tencent.TIMOfflinePushListener;
-import com.tencent.TIMOfflinePushNotification;
-import com.tencent.TIMTextElem;
-import com.tencent.qalsdk.sdk.MsfSdkUtils;
 
 import java.util.List;
+import java.util.Locale;
 
-import cn.jpush.android.api.JPushInterface;
 import cn.jpush.im.android.api.JMessageClient;
-import cn.jpush.im.android.api.content.EventNotificationContent;
-import cn.jpush.im.android.api.content.TextContent;
+import cn.jpush.im.android.api.event.ConversationRefreshEvent;
+import cn.jpush.im.android.api.event.LoginStateChangeEvent;
 import cn.jpush.im.android.api.event.MessageEvent;
+import cn.jpush.im.android.api.event.OfflineMessageEvent;
+import cn.jpush.im.android.api.model.Conversation;
 import cn.jpush.im.android.api.model.Message;
+import cn.jpush.im.android.api.model.UserInfo;
 import dong.lan.mapeye.common.JMCenter;
 import dong.lan.mapeye.common.MonitorManager;
+import dong.lan.mapeye.common.UserManager;
 import dong.lan.mapeye.utils.SPHelper;
 import io.realm.DynamicRealm;
 import io.realm.Realm;
@@ -41,6 +37,7 @@ import io.realm.RealmSchema;
 public class App extends Application {
 
 
+    private static final String TAG = "App";
     private static App context;
 
     public static Context getContext() {
@@ -51,8 +48,6 @@ public class App extends Application {
     public void onCreate() {
         super.onCreate();
         context = this;
-
-
         SPHelper.init(this);
         Logger.init("MapEye");
         Realm.init(this);
@@ -65,43 +60,24 @@ public class App extends Application {
                             RealmSchema schema = realm.getSchema();
                             schema.get("Record").addField("radius", int.class);
                             schema.remove("Location");
+                        }else if(oldVersion == 4){
+                            RealmSchema schema = realm.getSchema();
+                            schema.get("Contact").removeField("startMonitorTime")
+                                    .removeField("endMonitorTime")
+                                    .addField("startMonitorTime",long.class)
+                                    .addField("endMonitorTime",long.class);
                         }
                     }
                 })
-                .schemaVersion(4)
+                .schemaVersion(5)
                 .name("mapeye")
                 .build();
-
         Realm.setDefaultConfiguration(configuration);
         MonitorManager.instance().init(this);
         SDKInitializer.initialize(this);
 
-        if (MsfSdkUtils.isMainProcess(this)) {
-            TIMManager.getInstance().setOfflinePushListener(new TIMOfflinePushListener() {
-                @Override
-                public void handleNotification(TIMOfflinePushNotification notification) {
-                    if (notification.getGroupReceiveMsgOpt() == TIMGroupReceiveMessageOpt.ReceiveAndNotify) {
-                        //消息被设置为需要提醒
-                        notification.doNotify(getApplicationContext(), R.drawable.logo);
-                    }
-                }
-            });
-        }
-
-        TIMManager.getInstance().addMessageListener(new TIMMessageListener() {
-            @Override
-            public boolean onNewMessages(List<TIMMessage> list) {
-                for (TIMMessage message : list) {
-                    MonitorManager.instance().dispatchMessage(message);
-                }
-                return false;
-            }
-        });
-
-        JMessageClient.init(this);
-        JPushInterface.setDebugMode(true);
-
-
+        JMessageClient.setDebugMode(true);
+        JMessageClient.init(this, true);
         JMessageClient.registerEventReceiver(this);
 
     }
@@ -110,7 +86,31 @@ public class App extends Application {
     public void onEventMainThread(MessageEvent event) {
         Message msg = event.getMessage();
         JMCenter.instance().dispatchMessage(msg);
+    }
 
+    public void onEventMainThread(OfflineMessageEvent event) {
+        //获取事件发生的会话对象
+        Conversation conversation = event.getConversation();
+        List<Message> newMessageList = event.getOfflineMessageList();//获取此次离线期间会话收到的新消息列表
+        for (Message message : newMessageList)
+            JMCenter.instance().dispatchMessage(message);
+        System.out.println(String.format(Locale.SIMPLIFIED_CHINESE, "收到%d条来自%s的离线消息。\n", newMessageList.size(), conversation.getTargetId()));
+    }
+
+
+    /**
+     * 如果在JMessageClient.init时启用了消息漫游功能，则每当一个会话的漫游消息同步完成时
+     * sdk会发送此事件通知上层。
+     **/
+    public void onEventMainThread(ConversationRefreshEvent event) {
+        //获取事件发生的会话对象
+        Conversation conversation = event.getConversation();
+        //获取事件发生的原因，对于漫游完成触发的事件，此处的reason应该是
+        //MSG_ROAMING_COMPLETE
+        ConversationRefreshEvent.Reason reason = event.getReason();
+        System.out.println(String.format(Locale.SIMPLIFIED_CHINESE, "收到ConversationRefreshEvent事件,待刷新的会话是%s.\n", conversation.getTargetId()));
+        System.out.println("事件发生的原因 : " + reason);
+        MonitorManager.instance().post(conversation.getLatestMessage());
     }
 
 

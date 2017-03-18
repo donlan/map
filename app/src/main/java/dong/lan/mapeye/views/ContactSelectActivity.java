@@ -26,6 +26,7 @@ import android.support.v7.widget.GridLayoutManager;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.text.TextUtils;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -35,10 +36,6 @@ import android.widget.ImageView;
 import android.widget.TextView;
 
 import com.orhanobut.logger.Logger;
-import com.tencent.TIMFriendshipManager;
-import com.tencent.TIMUserProfile;
-import com.tencent.TIMValueCallBack;
-import com.tencent.qcloud.tlslibrary.helper.JMHelper;
 
 import java.util.ArrayList;
 import java.util.HashSet;
@@ -53,6 +50,7 @@ import dong.lan.mapeye.R;
 import dong.lan.mapeye.common.JMCenter;
 import dong.lan.mapeye.common.UserManager;
 import dong.lan.mapeye.model.Record;
+import dong.lan.mapeye.model.users.Contacts;
 import dong.lan.mapeye.model.users.User;
 import dong.lan.mapeye.model.message.CMDMessage;
 import dong.lan.mapeye.utils.NetUtils;
@@ -68,6 +66,7 @@ import io.realm.Realm;
 
 public class ContactSelectActivity extends BaseActivity {
 
+    private static final String TAG = ContactSelectActivity.class.getSimpleName();
     private boolean isDoing = false;
     @BindView(R.id.usersList)
     RecyclerView userList;
@@ -97,13 +96,13 @@ public class ContactSelectActivity extends BaseActivity {
             isDoing = false;
             return;
         }
-        final List<TIMUserProfile> userInfos = adapter.getUserInfos();
-        for (final TIMUserProfile u :
+        final List<User> userInfos = adapter.getUserInfos();
+        for (final User u :
                 userInfos) {
 
             Message jmesage = new JMCenter.JMessage(CMDMessage.CMD_SEND_MONITOR_INVITE,
-                    JMHelper.getJUsername(u.getIdentifier()), "正在请求对你进行位置监控")
-                    .appendStringExtra(JMCenter.EXTRAS_IDENTIFIER, u.getIdentifier())
+                    u.identifier(), "正在请求对你进行位置监控")
+                    .appendStringExtra(JMCenter.EXTRAS_IDENTIFIER, u.identifier())
                     .appendStringExtra(JMCenter.EXTRAS_RECORD_ID, groupId).build();
             JMCenter.sendMessage(jmesage, new BasicCallback() {
                 @Override
@@ -121,22 +120,6 @@ public class ContactSelectActivity extends BaseActivity {
                     }
                 }
             });
-//            TIMMessage message = MessageCreator.crateNormalTextCmdMessage(
-//                    CMDMessage.CMD_SEND_MONITOR_INVITE, "正在请求对你进行位置监控");
-//            message.setCustomStr(MessageHelper.createRecordContactExtras(groupId, u.getIdentifier()));
-//            MessageHelper.sendTIMMessage(u.getIdentifier(), message, new TIMValueCallBack<TIMMessage>() {
-//                @Override
-//                public void onError(int i, String s) {
-//                    Logger.d(i + "," + s);
-//                }
-//
-//                @Override
-//                public void onSuccess(TIMMessage message) {
-//                    Logger.d(message.getConversation().getPeer());
-//                    toast("发送成功");
-//                    MonitorManager.instance().post(message);
-//                }
-//            });
         }
         isDoing = false;
     }
@@ -144,50 +127,45 @@ public class ContactSelectActivity extends BaseActivity {
 
     private Adapter adapter;
     private String groupId;
+    private Realm realm;
 
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_select_contact);
         bindView(this);
+        realm = Realm.getDefaultInstance();
         if (getIntent().hasExtra(Record.GROUP_ID)) {
             groupId = getIntent().getStringExtra(Record.GROUP_ID);
-            if (TextUtils.isEmpty(groupId))
+            if (TextUtils.isEmpty(groupId)) {
                 return;
+            }
+            Log.d(TAG, "onCreate: "+groupId);
             userList.setLayoutManager(new GridLayoutManager(this, 1));
             userList.addItemDecoration(new RecycleViewDivider(this, LinearLayoutManager.VERTICAL, 5.0f));
-
-            TIMFriendshipManager.getInstance().getFriendList(new TIMValueCallBack<List<TIMUserProfile>>() {
-                @Override
-                public void onError(int i, String s) {
-                    toast(s);
-                }
-
-                @Override
-                public void onSuccess(List<TIMUserProfile> timUserProfiles) {
-                    if (timUserProfiles == null || timUserProfiles.isEmpty())
-                        toast("没有任何联系人");
-                    else {
-
-                        adapter = new Adapter(timUserProfiles);
-                        userList.setAdapter(adapter);
-                    }
-                }
-            });
+            adapter = new Adapter();
+            userList.setAdapter(adapter);
         } else {
             show("没有此记录相关的详细人配置");
         }
     }
 
 
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        realm.close();
+        realm = null;
+    }
+
     class Adapter extends RecyclerView.Adapter<SelectHolder> {
-        private List<TIMUserProfile> userInfos;
         private HashSet<Integer> set = new HashSet<>();
         private LayoutInflater inflater;
+        private Contacts contacts;
 
-        Adapter(List<TIMUserProfile> userInfos) {
-            this.userInfos = userInfos;
+        Adapter() {
             inflater = LayoutInflater.from(ContactSelectActivity.this);
+            contacts = UserManager.instance().getContacts(realm);
         }
 
         @Override
@@ -209,29 +187,29 @@ public class ContactSelectActivity extends BaseActivity {
 
         @Override
         public void onBindViewHolder(SelectHolder holder, final int i) {
-            TIMUserProfile user = userInfos.get(i);
-            if (user.getIdentifier().equals(UserManager.instance().myIdentifier())) {
+            User user = contacts.getContacts().get(i);
+            if (user.identifier().equals(UserManager.instance().myIdentifier())) {
                 holder.check.setVisibility(View.GONE);
             } else {
                 holder.check.setVisibility(View.VISIBLE);
                 holder.check.setChecked(set.contains(i));
             }
-            holder.name.setText(User.getUserDescriber(userInfos.get(i)));
+            holder.name.setText(user.displayName());
         }
 
         @Override
         public int getItemCount() {
-            return userInfos.size();
+            return contacts == null ? 0 : contacts.getContacts().size();
         }
 
         public HashSet<Integer> getSet() {
             return set;
         }
 
-        List<TIMUserProfile> getUserInfos() {
-            List<TIMUserProfile> t = new ArrayList<>();
+        List<User> getUserInfos() {
+            List<User> t = new ArrayList<>();
             for (Integer aSet : set) {
-                t.add(userInfos.get(aSet));
+                t.add(contacts.getContacts().get(aSet));
             }
             return t;
         }

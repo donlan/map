@@ -5,8 +5,13 @@ import android.content.Intent;
 import android.os.Bundle;
 import android.util.Log;
 
+import com.orhanobut.logger.Logger;
+
 import java.util.concurrent.Callable;
 
+import dong.lan.mapeye.common.SMSServer;
+import dong.lan.mapeye.common.Secure;
+import dong.lan.mapeye.common.UserManager;
 import dong.lan.mapeye.contracts.LoginAndSignContract;
 import dong.lan.mapeye.utils.SPHelper;
 import io.realm.Realm;
@@ -15,6 +20,8 @@ import rx.Single;
 import rx.Subscriber;
 import rx.android.schedulers.AndroidSchedulers;
 import rx.schedulers.Schedulers;
+
+import static dong.lan.mapeye.contracts.LoginAndSignContract.loginAndSignView.KEY_IS_LOGIN;
 
 /**
  * Created by 梁桂栋 on 16-11-6 ： 下午10:44.
@@ -29,35 +36,13 @@ public class SplashActivity extends Activity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        Single.fromCallable(new Callable<Boolean>() {
-            @Override
-            public Boolean call() throws Exception {
 
-                SPHelper.init(SplashActivity.this.getApplicationContext());
-                return SPHelper.getBoolean(LoginAndSignContract.loginAndSignView.KEY_IS_LOGIN);
-            }
-        }).subscribeOn(Schedulers.newThread())
-                .observeOn(AndroidSchedulers.mainThread())
-                .subscribe(new Subscriber<Boolean>() {
-                    @Override
-                    public void onCompleted() {
-                        finish();
-                    }
-
-                    @Override
-                    public void onError(Throwable e) {
-                    }
-
-                    @Override
-                    public void onNext(Boolean o) {
-                        Log.d(TAG, "onNext: "+o);
-                        if(o){
-                            startActivity(new Intent(SplashActivity.this,MainActivity.class));
-                        }else{
-                            startActivity(new Intent(SplashActivity.this,LoginAndSignActivity.class));
-                        }
-                    }
-                });
-
+        if (UserManager.instance().isLogin()) {
+            startActivity(new Intent(SplashActivity.this, MainActivity.class));
+        } else {
+            startActivity(new Intent(SplashActivity.this, LoginAndSignActivity.class));
+        }
+        finish();
     }
+
 }

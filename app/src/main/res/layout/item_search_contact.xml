@@ -42,7 +42,7 @@
         android:textColor="@color/md_grey_900"
         android:textSize="20sp" />
 
-    <dong.lan.mapeye.views.customsView.LabelTextView
+    <dong.lan.library.LabelTextView
         android:id="@+id/itemSearchAdd"
         android:layout_width="50dp"
         android:layout_height="50dp"

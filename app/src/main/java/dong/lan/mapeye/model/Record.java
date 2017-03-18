@@ -26,7 +26,7 @@ public class Record extends RealmObject implements Serializable {
 
     private String id;                  //默认是创建时的时间的毫秒数
     private User own;                   //创建者
-    private Date createTime;            //创建时间
+    private long createTime;            //创建时间
     private String label;               //标签
     private String info;                //说明信息
     private int type;                   //类型
@@ -51,11 +51,11 @@ public class Record extends RealmObject implements Serializable {
         this.own = own;
     }
 
-    public Date getCreateTime() {
+    public long getCreateTime() {
         return createTime;
     }
 
-    public void setCreateTime(Date createTime) {
+    public void setCreateTime(long createTime) {
         this.createTime = createTime;
     }
 

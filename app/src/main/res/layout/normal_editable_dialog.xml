@@ -41,7 +41,7 @@
         android:background="@drawable/circle_rect_stroke_black_8"
         android:minHeight="45dp" />
 
-    <dong.lan.mapeye.views.customsView.LabelTextView
+    <dong.lan.library.LabelTextView
         android:id="@+id/dialog_ok"
         android:layout_width="match_parent"
         android:layout_height="50dp"

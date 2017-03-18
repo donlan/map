@@ -20,7 +20,6 @@
 
 package dong.lan.mapeye.contracts;
 
-import com.tencent.TIMMessage;
 
 import java.util.List;
 

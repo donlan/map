@@ -23,14 +23,15 @@ package dong.lan.mapeye.task;
 import android.app.IntentService;
 import android.content.Intent;
 
-import com.tencent.TIMMessage;
+import com.orhanobut.logger.Logger;
 
-import dong.lan.mapeye.common.MessageHelper;
+import cn.jpush.im.android.api.model.Message;
+import cn.jpush.im.api.BasicCallback;
+import dong.lan.mapeye.common.JMCenter;
 import dong.lan.mapeye.common.MonitorManager;
 import dong.lan.mapeye.events.MonitorTaskEvent;
 import dong.lan.mapeye.model.users.Contact;
 import dong.lan.mapeye.model.message.CMDMessage;
-import dong.lan.mapeye.model.message.MessageCreator;
 import io.realm.Realm;
 
 /**
@@ -77,12 +78,16 @@ public class MonitorStatusTask extends IntentService {
                                     recordId,
                                     MonitorTaskEvent.TYPE_UPDATE_STATE
                             ));
-                            TIMMessage message = MessageCreator.createNormalCmdMessage(
-                                    CMDMessage.CMD_MONITOR_STOP,
-                                    "停止定位",
-                                    "");
-                            MessageHelper.sendTIMMessage(contact.getUser().getIdentifier(),
-                                    message, null);
+
+                            Message message = JMCenter.createMessage(CMDMessage.CMD_MONITOR_STOP,
+                                    contact.getUser().identifier(),
+                                    "停止定位");
+                            JMCenter.sendMessage(message, new BasicCallback() {
+                                @Override
+                                public void gotResult(int i, String s) {
+                                    Logger.d(i+","+s);
+                                }
+                            });
                             realm.close();
                             break;
                         }

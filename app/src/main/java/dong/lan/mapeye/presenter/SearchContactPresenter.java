@@ -25,16 +25,13 @@ import android.view.View;
 import android.widget.EditText;
 
 import com.orhanobut.logger.Logger;
-import com.tencent.TIMAddFriendRequest;
-import com.tencent.TIMFriendResult;
-import com.tencent.TIMFriendshipManager;
-import com.tencent.TIMUserProfile;
-import com.tencent.TIMValueCallBack;
-import com.tencent.qcloud.tlslibrary.helper.JMHelper;
 
 import java.util.Collections;
 import java.util.List;
 
+import cn.jpush.im.android.api.JMessageClient;
+import cn.jpush.im.android.api.callback.GetUserInfoCallback;
+import cn.jpush.im.android.api.model.UserInfo;
 import cn.jpush.im.api.BasicCallback;
 import dong.lan.mapeye.R;
 import dong.lan.mapeye.common.JMCenter;
@@ -61,28 +58,25 @@ public class SearchContactPresenter implements SearchContact.Presenter {
     @Override
     public void queryContact(final String username) {
         Logger.d(username);
-        TIMFriendshipManager.getInstance().
-                getUsersProfile(Collections.singletonList(username), new TIMValueCallBack<List<TIMUserProfile>>() {
-                    @Override
-                    public void onError(int i, String s) {
-                        Logger.d(i + "," + s);
-                        view.toast(s);
+        JMessageClient.getUserInfo(username, new GetUserInfoCallback() {
+            @Override
+            public void gotResult(int i, String s, UserInfo userInfo) {
+                if(i == 0){
+                    if (userInfo != null) {
+                        view.setContactsAdapter(Collections.singletonList(userInfo));
+                    } else {
+                        view.toast("无匹配用户");
                     }
-
-                    @Override
-                    public void onSuccess(List<TIMUserProfile> userProfiles) {
-                        if (userProfiles != null && !userProfiles.isEmpty()) {
-                            view.setContactsAdapter(userProfiles);
-                        } else {
-                            view.toast("无匹配用户");
-                        }
-                    }
-                });
+                }else{
+                    view.toast(s);
+                }
+            }
+        });
     }
 
     @Override
-    public void sendInvite(final TIMUserProfile user) {
-        if (user.getIdentifier().equals(UserManager.instance().myIdentifier())) {
+    public void sendInvite(final UserInfo user) {
+        if (user.getUserName().equals(UserManager.instance().myIdentifier())) {
             view.toast("不能添加自己为好友");
             return;
         }
@@ -96,29 +90,18 @@ public class SearchContactPresenter implements SearchContact.Presenter {
                             view.toast("请求理由不能为空");
                             return;
                         }
-                        JMCenter.friendInvite(JMHelper.getJUsername(user.getIdentifier()), reason, new BasicCallback() {
+                        JMCenter.friendInvite(user.getUserName(), reason, new BasicCallback() {
                             @Override
                             public void gotResult(int i, String s) {
                                 Logger.d(i+","+s);
+                                if(i == 0){
+                                    view.show("发送请求成功");
+                                }else{
+                                    view.toast(s);
+                                }
                             }
                         });
-                        TIMAddFriendRequest req = new TIMAddFriendRequest();
-                        req.setAddrSource("AddSource_Type_Android");
-                        req.setAddWording(reason);
-                        req.setIdentifier(user.getIdentifier());
-                        req.setRemark(dialog.getText(R.id.addFriendRemark, EditText.class));
-                        TIMFriendshipManager.getInstance().addFriend(Collections.singletonList(req),
-                                new TIMValueCallBack<List<TIMFriendResult>>() {
-                                    @Override
-                                    public void onError(int i, String s) {
-                                        view.toast(i + "," + s);
-                                    }
 
-                                    @Override
-                                    public void onSuccess(List<TIMFriendResult> timFriendResults) {
-                                        view.show("发送请求成功");
-                                    }
-                                });
                         dialog.dismiss();
                     }
                 }).show();

@@ -40,7 +40,7 @@
             android:layout_marginTop="12dp"
             android:src="@drawable/boy" />
 
-        <dong.lan.mapeye.views.customsView.LabelTextView
+        <dong.lan.library.LabelTextView
             android:id="@+id/affairType"
             android:layout_margin="16dp"
             android:paddingLeft="16dp"
@@ -67,12 +67,14 @@
     <View
         android:layout_width="match_parent"
         android:layout_height="1px"
-        android:layout_marginLeft="24dp"
-        android:layout_marginRight="24dp"
+        android:layout_marginLeft="16dp"
+        android:layout_marginRight="16dp"
         android:layout_marginTop="16dp"
-        android:background="@color/md_grey_600" />
+        android:background="@color/md_grey_300" />
 
     <TextView
+        android:layout_marginLeft="24dp"
+        android:layout_marginRight="24dp"
         android:id="@+id/extras"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
@@ -80,6 +82,8 @@
         android:textSize="16sp" />
 
     <TextView
+        android:layout_marginLeft="24dp"
+        android:layout_marginRight="24dp"
         android:id="@+id/time"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
@@ -92,7 +96,7 @@
         android:layout_height="wrap_content"
         android:orientation="horizontal">
 
-        <dong.lan.mapeye.views.customsView.LabelTextView
+        <dong.lan.library.LabelTextView
             android:id="@+id/deny"
             android:layout_width="wrap_content"
             android:layout_height="45dp"
@@ -105,7 +109,7 @@
             app:bg_color="@color/md_red_400"
             app:radius="20dp" />
 
-        <dong.lan.mapeye.views.customsView.LabelTextView
+        <dong.lan.library.LabelTextView
             android:id="@+id/accept"
             android:layout_width="wrap_content"
             android:layout_height="45dp"

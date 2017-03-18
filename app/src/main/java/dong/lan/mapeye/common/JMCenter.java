@@ -20,13 +20,10 @@
 
 package dong.lan.mapeye.common;
 
-import android.content.Intent;
-
 import com.baidu.location.BDLocation;
 import com.baidu.location.LocationClientOption;
 import com.orhanobut.logger.Logger;
 import com.tencent.qcloud.sdk.Constant;
-import com.tencent.qcloud.tlslibrary.helper.JMHelper;
 
 import cn.jpush.im.android.api.ContactManager;
 import cn.jpush.im.android.api.JMessageClient;
@@ -142,12 +139,13 @@ public class JMCenter {
         int cmd = getNumberExtras(EXTRAS_CMD, msg).intValue();
         String recordId = getStringExtras(EXTRAS_RECORD_ID, msg);
         String identifier = getStringExtras(EXTRAS_IDENTIFIER, msg);
+        Logger.d(cmd+","+identifier);
         switch (cmd) {
             case CMDMessage.CMD_CLIENT_INFO_REPLY:
                 MonitorManager.instance().notifyClientInfo(recordId,identifier,getStringExtras(EXTRAS_CLIENT_INFO,msg));
                 break;
             case CMDMessage.CMD_CLIENT_INFO:
-                MonitorManager.instance().gatherMobileInfo(recordId, identifier);
+                MonitorManager.instance().gatherMobileInfo(recordId, msg.getFromUser().getUserName());
                 break;
             case CMDMessage.CMD_SEND_MONITOR_INVITE:
                 TextContent content = (TextContent) msg.getContent();
@@ -226,7 +224,7 @@ public class JMCenter {
     }
 
     public static void sendClientInfoMessage(String identifier, String recordId, BasicCallback callback) {
-        Message message = JMessageClient.createSingleTextMessage(JMHelper.getJUsername(identifier),
+        Message message = JMessageClient.createSingleTextMessage(identifier,
                 "获取手机信息");
         message.getContent().setNumberExtra(EXTRAS_CMD, CMDMessage.CMD_CLIENT_INFO);
         message.getContent().setStringExtra(EXTRAS_RECORD_ID, recordId);
@@ -237,7 +235,7 @@ public class JMCenter {
     }
 
     public static void replyMobileInfo(String recordId, String identifier, ClientInfo clientInfo) {
-        Message message = JMessageClient.createSingleTextMessage(JMHelper.getJUsername(identifier), clientInfo.toString());
+        Message message = JMessageClient.createSingleTextMessage(identifier, clientInfo.toString());
         message.getContent().setNumberExtra(EXTRAS_CMD, CMDMessage.CMD_CLIENT_INFO_REPLY);
         message.getContent().setStringExtra(EXTRAS_IDENTIFIER, identifier);
         message.getContent().setStringExtra(EXTRAS_RECORD_ID, recordId);
@@ -249,7 +247,7 @@ public class JMCenter {
         Message message;
 
         public JMessage(int cmd, String identifier, String text) {
-            message = JMessageClient.createSingleTextMessage(JMHelper.getJUsername(identifier), text);
+            message = JMessageClient.createSingleTextMessage(identifier, text);
             message.getContent().setNumberExtra(EXTRAS_CMD, cmd);
         }
 

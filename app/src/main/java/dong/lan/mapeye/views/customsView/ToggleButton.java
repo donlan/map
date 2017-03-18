@@ -90,6 +90,7 @@ public class ToggleButton extends View {
             shadowSize = (int) ta.getDimension(R.styleable.ToggleButton_tb_shadow_radius,shadowSize);
             shadowColor = ta.getColor(R.styleable.ToggleButton_tb_shadow_color,shadowColor);
             uncheckColor = ta.getColor(R.styleable.ToggleButton_tb_uncheck_color,uncheckColor);
+            isChecked = ta.getBoolean(R.styleable.ToggleButton_tb_isCheck,false);
             ta.recycle();
         }else{
             circleRadius = dp2px(circleRadius);

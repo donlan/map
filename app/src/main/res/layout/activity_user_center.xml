@@ -39,7 +39,7 @@
             android:layout_marginTop="20dp"
             android:src="@drawable/boy" />
 
-        <dong.lan.mapeye.views.customsView.LabelTextView
+        <dong.lan.library.LabelTextView
             android:id="@+id/user_center_tag"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
@@ -117,7 +117,7 @@
             android:gravity="center"
             android:text="用户标示用于添加好友" />
 
-        <dong.lan.mapeye.views.customsView.LabelTextView
+        <dong.lan.library.LabelTextView
             android:id="@+id/userIdentifier"
             android:layout_width="wrap_content"
             android:layout_height="45dp"
@@ -134,7 +134,8 @@
     </LinearLayout>
 
 
-    <dong.lan.mapeye.views.customsView.LabelTextView
+    <dong.lan.library.LabelTextView
+        android:enabled="false"
         android:id="@+id/userTimerTask"
         android:layout_width="wrap_content"
         android:layout_height="45dp"
@@ -155,24 +156,26 @@
         android:gravity="bottom"
         android:orientation="horizontal">
 
-        <dong.lan.mapeye.views.customsView.LabelTextView
+        <dong.lan.library.LabelTextView
             android:id="@+id/user_center_look_for_monitor"
             android:layout_width="0dp"
             android:layout_height="45dp"
             android:layout_weight="1"
             android:gravity="center"
             android:text="@string/look_for_monitor_recode"
+            android:enabled="false"
             android:textColor="@color/md_white_1000"
             android:textSize="18sp"
             app:bg_color="@color/colorPrimary" />
 
-        <dong.lan.mapeye.views.customsView.LabelTextView
+        <dong.lan.library.LabelTextView
             android:id="@+id/user_center_upload_head"
             android:layout_width="0dp"
             android:layout_height="45dp"
             android:layout_weight="1"
             android:gravity="center"
             android:text="@string/upload_user_avatar"
+            android:enabled="false"
             android:textColor="@color/md_white_1000"
             android:textSize="18sp"
             app:bg_color="@color/md_orange_500" />

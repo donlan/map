@@ -27,29 +27,19 @@ import android.widget.ImageView;
 import android.widget.TextView;
 
 import com.orhanobut.logger.Logger;
-import com.tencent.TIMFriendAddResponse;
-import com.tencent.TIMFriendResponseType;
-import com.tencent.TIMFriendResult;
-import com.tencent.TIMFriendshipManager;
-import com.tencent.TIMMessage;
-import com.tencent.TIMValueCallBack;
 
-import java.util.Collections;
 import java.util.Date;
-import java.util.Locale;
 
 import butterknife.BindView;
 import butterknife.OnClick;
 import cn.jpush.im.android.api.model.Message;
 import cn.jpush.im.api.BasicCallback;
+import dong.lan.library.LabelTextView;
 import dong.lan.mapeye.R;
 import dong.lan.mapeye.common.JMCenter;
-import dong.lan.mapeye.common.MessageHelper;
 import dong.lan.mapeye.model.Affair;
 import dong.lan.mapeye.model.message.CMDMessage;
-import dong.lan.mapeye.model.message.MessageCreator;
 import dong.lan.mapeye.utils.DateUtils;
-import dong.lan.mapeye.views.customsView.LabelTextView;
 import io.realm.Realm;
 
 public class AffairHandleActivity extends BaseActivity {
@@ -101,36 +91,13 @@ public class AffairHandleActivity extends BaseActivity {
 
     @OnClick(R.id.deny)
     void deny(final View view) {
-        toast("开始发送同意请求的回执消息");
+        toast("开始发送拒绝请求的回执消息");
         view.setEnabled(false);
 
         if (affair.getType() == Affair.TYPE_MONITOR_BIND) {
             handleMonitorInvite(CMDMessage.CMD_MONITOR_INVITE_DENY,"拒绝位置共享绑定",Affair.HANDLE_DENY);
-//            TIMMessage message = MessageCreator.createNormalCmdMessage(CMDMessage.CMD_MONITOR_INVITE_DENY,
-//                    "拒绝位置共享绑定",
-//                    "");
-//            message.setCustomStr(affair.getExtras());
-//            MessageHelper.sendTIMMessage(affair.getFromUser(), message, new TIMValueCallBack<TIMMessage>() {
-//                @Override
-//                public void onError(int i, String s) {
-//                    toast("发送回执消息失败： " + s);
-//                    view.setEnabled(true);
-//                }
-//
-//                @Override
-//                public void onSuccess(TIMMessage message) {
-//                    view.setEnabled(true);
-//                    if (realm == null)
-//                        realm = Realm.getDefaultInstance();
-//                    realm.beginTransaction();
-//                    affair.setHandle(Affair.HANDLE_DENY);
-//                    realm.commitTransaction();
-//                    finish();
-//                    toast("发送回执消息成功");
-//                }
-//            });
         } else if (affair.getType() == Affair.TYPE_USER_INVITE) {
-            handleFriendInvite(true, affair.getFromUser());
+            handleFriendInvite(false, affair.getFromUser());
         }
     }
 
@@ -141,22 +108,6 @@ public class AffairHandleActivity extends BaseActivity {
         if (affair.getType() == Affair.TYPE_MONITOR_BIND) {
 
             handleMonitorInvite(CMDMessage.CMD_MONITOR_INVITE_OK,"已同意位置共享绑定",Affair.HANDLE_ACCEPT);
-//            TIMMessage message = MessageCreator.createNormalCmdMessage(CMDMessage.CMD_MONITOR_INVITE_DENY,
-//                    "已同意位置共享绑定",
-//                    "");
-//            message.setCustomStr(affair.getExtras());
-//            MessageHelper.sendTIMMessage(affair.getFromUser(), message, new TIMValueCallBack<TIMMessage>() {
-//                @Override
-//                public void onError(int i, String s) {
-//                    view.setEnabled(true);
-//                    toast("发送回执消息失败： " + s);
-//                }
-//
-//                @Override
-//                public void onSuccess(TIMMessage message) {
-//
-//                }
-//            });
         } else if (affair.getType() == Affair.TYPE_USER_INVITE) {
             handleFriendInvite(true, affair.getFromUser());
         }
@@ -210,37 +161,19 @@ public class AffairHandleActivity extends BaseActivity {
                 }
             });
         }else{
-            JMCenter.declineInvite(affair.getFromUser(), "", new BasicCallback() {
+            JMCenter.declineInvite(affair.getFromUser(), "拒绝你的好友请求", new BasicCallback() {
                 @Override
                 public void gotResult(int i, String s) {
                     Logger.d(i+","+s);
                 }
             });
         }
-
-        TIMFriendAddResponse response = new TIMFriendAddResponse();
-        response.setIdentifier(affair.getFromUser());
-        response.setRemark(remark);
-        response.setType(isAccept ? TIMFriendResponseType.AgreeAndAdd : TIMFriendResponseType.Reject);
-        TIMFriendshipManager.getInstance().addFriendResponse(response, new TIMValueCallBack<TIMFriendResult>() {
-            @Override
-            public void onError(int i, String s) {
-                toast(s);
-                Logger.d(i + "," + s);
-            }
-
-            @Override
-            public void onSuccess(TIMFriendResult timFriendResult) {
-                Logger.d(timFriendResult.getStatus());
-                if (realm == null)
-                    realm = Realm.getDefaultInstance();
-                realm.beginTransaction();
-                affair.setHandle(isAccept ? Affair.HANDLE_ACCEPT : Affair.HANDLE_DENY);
-                realm.commitTransaction();
-                finish();
-            }
-        });
-
+        if (realm == null)
+            realm = Realm.getDefaultInstance();
+        realm.beginTransaction();
+        affair.setHandle(isAccept ? Affair.HANDLE_ACCEPT : Affair.HANDLE_DENY);
+        realm.commitTransaction();
+        finish();
     }
 
     private void checkIntent() {
@@ -260,7 +193,7 @@ public class AffairHandleActivity extends BaseActivity {
                     content.setText(affair.getContent());
                     extras.setText(affair.getExtras());
                     affairType.setText(affair.getTypeString());
-                    time.setText(DateUtils.format(new Date(affair.getCreatedTime()), "事务时间： YYYY-MM-dd HH:mm"));
+                    time.setText(DateUtils.getTime(affair.getCreatedTime(), "事务时间： yyyy.MM.dd HH:mm"));
                     if (affair.getHandle() == Affair.HANDLE_AS_NOTICE) {
                         deny.setVisibility(View.GONE);
                         accept.setVisibility(View.GONE);

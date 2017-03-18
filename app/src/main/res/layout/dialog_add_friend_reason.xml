@@ -56,7 +56,7 @@
         android:paddingRight="8dp"
         android:textColorHint="@color/md_grey_500" />
 
-    <dong.lan.mapeye.views.customsView.LabelTextView
+    <dong.lan.library.LabelTextView
         android:id="@+id/addFriendReqDone"
         android:layout_width="match_parent"
         android:layout_height="50dp"

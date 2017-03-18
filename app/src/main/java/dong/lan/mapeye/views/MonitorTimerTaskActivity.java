@@ -20,9 +20,11 @@
 
 package dong.lan.mapeye.views;
 
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.os.Bundle;
 import android.support.design.widget.FloatingActionButton;
+import android.support.v7.app.AlertDialog;
 import android.support.v7.widget.GridLayoutManager;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
@@ -35,6 +37,7 @@ import android.widget.TextView;
 import butterknife.BindView;
 import butterknife.ButterKnife;
 import butterknife.OnClick;
+import dong.lan.library.LabelTextView;
 import dong.lan.mapeye.R;
 import dong.lan.mapeye.adapter.BaseHolder;
 import dong.lan.mapeye.adapter.BaseRealmAdapter;
@@ -42,7 +45,6 @@ import dong.lan.mapeye.common.Config;
 import dong.lan.mapeye.common.MonitorManager;
 import dong.lan.mapeye.model.MonitorTimer;
 import dong.lan.mapeye.utils.DateUtils;
-import dong.lan.mapeye.views.customsView.LabelTextView;
 import dong.lan.mapeye.views.customsView.RecycleViewDivider;
 import dong.lan.mapeye.views.customsView.ToggleButton;
 import io.realm.Realm;
@@ -180,16 +182,33 @@ public class MonitorTimerTaskActivity extends BaseActivity {
         public ViewHolder(View itemView) {
             super(itemView);
             ButterKnife.bind(this, itemView);
-        }
-
-        @Override
-        protected void bindView(View view) {
             timerSwitcher.setOnCheckChangeListener(new ToggleButton.OnCheckChangeListener() {
                 @Override
                 public void onChanged(boolean isChecked) {
                     MonitorManager.instance().handleTimerStatus(timers.get(getLayoutPosition()), isChecked, realm);
                 }
             });
+            itemView.setOnLongClickListener(new View.OnLongClickListener() {
+                @Override
+                public boolean onLongClick(View v) {
+                    new AlertDialog.Builder(v.getContext())
+                            .setMessage("确定删除此定时任务?")
+                            .setPositiveButton("确定", new DialogInterface.OnClickListener() {
+                                @Override
+                                public void onClick(DialogInterface dialog, int which) {
+                                    adapter.notifyItemRemoved(getLayoutPosition());
+                                    MonitorManager.instance().deleteMonitor(timers.get(getLayoutPosition()), realm);
+                                }
+                            }).setNegativeButton("取消",null)
+                            .show();
+                    return true;
+                }
+            });
+        }
+
+        @Override
+        protected void bindView(View view) {
+
         }
     }
 

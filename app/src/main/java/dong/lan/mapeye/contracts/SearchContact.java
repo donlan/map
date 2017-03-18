@@ -20,9 +20,10 @@
 
 package dong.lan.mapeye.contracts;
 
-import com.tencent.TIMUserProfile;
 
 import java.util.List;
+
+import cn.jpush.im.android.api.model.UserInfo;
 
 
 /**
@@ -37,7 +38,7 @@ public final class SearchContact {
 
     public interface View{
 
-        void setContactsAdapter(List<TIMUserProfile> users);
+        void setContactsAdapter(List<UserInfo> users);
     }
 
     public interface Presenter{
@@ -47,6 +48,6 @@ public final class SearchContact {
          */
         void queryContact(String username);
 
-        void sendInvite(TIMUserProfile user);
+        void sendInvite(UserInfo user);
     }
 }

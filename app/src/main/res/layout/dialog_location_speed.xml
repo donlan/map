@@ -51,7 +51,7 @@
         android:paddingLeft="10dp"
         android:paddingRight="10dp" />
 
-    <dong.lan.mapeye.views.customsView.LabelTextView
+    <dong.lan.library.LabelTextView
         android:id="@+id/location_speed_done"
         android:layout_width="match_parent"
         android:layout_height="45dp"

@@ -38,6 +38,7 @@ public class Affair extends RealmObject {
 
     public static final int TYPE_MONITOR_BIND =0;
     public static final int TYPE_USER_INVITE =1;
+    public static final int TYPE_NOTICE = 2;//只做显示,不做处理
 
     private String id;             //对应极光Api中的Message的id
     private long tag;         //保存特殊属性（此处保存Contact.createId(groupId,UserId)）
@@ -70,6 +71,8 @@ public class Affair extends RealmObject {
                 return "绑定邀请";
             case TYPE_USER_INVITE:
                 return "好友请求";
+            case TYPE_NOTICE:
+                return "通知";
         }
         return "";
     }

@@ -132,7 +132,7 @@
     </LinearLayout>
 
 
-    <dong.lan.mapeye.views.customsView.LabelTextView
+    <dong.lan.library.LabelTextView
         android:id="@+id/timer_task_save_lvt"
         android:layout_marginLeft="20dp"
         android:layout_marginRight="20dp"

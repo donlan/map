@@ -32,18 +32,20 @@ import android.widget.ImageView;
 import android.widget.TextView;
 
 
-import com.tencent.TIMUserProfile;
 
 import butterknife.BindView;
 import butterknife.OnClick;
 import butterknife.OnTextChanged;
+import cn.jpush.im.android.api.JMessageClient;
+import cn.jpush.im.android.api.model.UserInfo;
+import dong.lan.library.LabelTextView;
 import dong.lan.mapeye.R;
 import dong.lan.mapeye.common.Config;
 import dong.lan.mapeye.common.UserManager;
 import dong.lan.mapeye.contracts.UserCenterContract;
+import dong.lan.mapeye.model.users.IUserInfo;
 import dong.lan.mapeye.model.users.User;
 import dong.lan.mapeye.presenter.UserCenterPresenter;
-import dong.lan.mapeye.views.customsView.LabelTextView;
 
 /**
  * Created by 梁桂栋 on 16-12-12 ： 下午2:42.
@@ -163,11 +165,14 @@ public class UserCenterActivity extends BaseActivity implements UserCenterContra
     }
 
     @Override
-    public void initView(TIMUserProfile userInfo, boolean isUserSelf) {
-        identifier = userInfo.getIdentifier();
+    public void initView(IUserInfo userInfo, boolean isUserSelf) {
+        userTimerTaskLtv.setEnabled(true);
+        lookForMonitorLtv.setEnabled(true);
+        uploadAvatarLtv.setEnabled(true);
+        identifier = userInfo.identifier();
         tittleTv.setText(User.getUserDescriber(userInfo));
-        identifyLtv.setText(userInfo.getIdentifier());
-        String phone = userInfo.getIdentifier();
+        identifyLtv.setText(userInfo.username());
+        String phone = userInfo.username();
         if (phone == null || phone.equals("")) {
             phoneEt.setHint("未绑定手机");
         }
@@ -178,10 +183,10 @@ public class UserCenterActivity extends BaseActivity implements UserCenterContra
         String nickname;
         if (isUserSelf) {
             userTimerTaskLtv.setVisibility(View.GONE);
-            nickname = userInfo.getNickName();
+            nickname = userInfo.nickname();
             renameEt.setHint(nickname == null || nickname.equals("") ? "设置昵称" : nickname);
         } else {
-            nickname = userInfo.getRemark();
+            nickname = userInfo.remark();
             renameEt.setHint(nickname == null || nickname.equals("") ? "设置备注" : nickname);
             barRightTv.setText("聊天");
             phoneEt.setFocusable(false);

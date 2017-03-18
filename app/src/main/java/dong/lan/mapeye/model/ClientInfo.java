@@ -20,7 +20,6 @@
 
 package dong.lan.mapeye.model;
 
-import com.tencent.qcloud.tlslibrary.helper.JMHelper;
 
 import dong.lan.mapeye.common.MessageHelper;
 import dong.lan.mapeye.utils.NetUtils;

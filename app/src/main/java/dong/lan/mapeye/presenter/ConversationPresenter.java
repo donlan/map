@@ -20,10 +20,6 @@
 
 package dong.lan.mapeye.presenter;
 
-import com.tencent.TIMConversation;
-import com.tencent.TIMElemType;
-import com.tencent.TIMManager;
-import com.tencent.TIMMessage;
 
 import java.util.ArrayList;
 import java.util.HashMap;

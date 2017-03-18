@@ -20,14 +20,10 @@
 
 package dong.lan.mapeye.presenter;
 
-import com.tencent.TIMManager;
-import com.tencent.TIMMessage;
-
-import java.util.Collections;
-import java.util.Comparator;
 import java.util.List;
 
 import cn.jpush.im.android.api.JMessageClient;
+import cn.jpush.im.android.api.model.Conversation;
 import cn.jpush.im.api.BasicCallback;
 import dong.lan.mapeye.contracts.ChatContract;
 import dong.lan.mapeye.model.conversation.IConversation;
@@ -54,7 +50,7 @@ public class ChatPresenter implements ChatContract.Presenter {
 
     @Override
     public void initChatList(String identifier) {
-        conversation = new JConversation(JMessageClient.getSingleConversation(identifier));
+        conversation = new JConversation(Conversation.createSingleConversation(identifier));
         if (conversation == null) {
             view.show("没有初始化好会话配置");
         } else {

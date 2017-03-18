@@ -1,23 +1,20 @@
 package dong.lan.mapeye.common;
 
+import android.util.Log;
+
 import com.orhanobut.logger.Logger;
-import com.tencent.TIMCallBack;
-import com.tencent.TIMFriendshipManager;
-import com.tencent.TIMGroupMemberInfo;
-import com.tencent.TIMUserProfile;
-import com.tencent.TIMValueCallBack;
-import com.tencent.qcloud.presentation.business.LoginBusiness;
-import com.tencent.qcloud.tlslibrary.service.TlsBusiness;
 
 import java.util.List;
 
 import cn.jpush.im.android.api.JMessageClient;
+import cn.jpush.im.android.api.model.UserInfo;
+import cn.jpush.im.api.BasicCallback;
 import dong.lan.mapeye.contracts.RecordDetailContract;
 import dong.lan.mapeye.model.users.Contact;
 import dong.lan.mapeye.model.users.Contacts;
 import dong.lan.mapeye.model.users.Group;
+import dong.lan.mapeye.model.users.IUserInfo;
 import dong.lan.mapeye.model.users.User;
-import dong.lan.mapeye.model.users.UserInfo;
 import dong.lan.mapeye.model.message.IMessage;
 import dong.lan.mapeye.utils.SPHelper;
 import io.realm.Realm;
@@ -36,12 +33,12 @@ import static dong.lan.mapeye.contracts.LoginAndSignContract.loginAndSignView.KE
 public class UserManager {
 
 
+    private static final String TAG = UserManager.class.getSimpleName();
     private static UserManager manager;
-    private User user;
+    private IUserInfo userInfo;
     private Realm realm;
     private Contacts contacts;
-
-    private TIMUserProfile userProfile;
+    private User user;
 
 
     private UserManager() {
@@ -50,7 +47,7 @@ public class UserManager {
 
 
     public String myIdentifier() {
-        return UserInfo.getInstance().getId();
+        return userInfo.identifier();
     }
 
     /**
@@ -77,88 +74,20 @@ public class UserManager {
         return manager;
     }
 
-    public TIMUserProfile me() {
+    public IUserInfo me() {
 
-        if (userProfile == null) {
-            userProfile = MessageHelper.getInstance().
-                    toTarget(SPHelper.get("USER"), TIMUserProfile.class);
+        if (userInfo == null) {
+            userInfo = MessageHelper.getInstance().
+                    toTarget(SPHelper.get("USER"), User.class);
         }
-        return userProfile;
+        return userInfo;
     }
 
-    /**
-     * @return 返回登陆过后本地保存的用户对象，没有登陆或者退出登陆则返回null
-     */
-    public User getCurrentUser() {
-        if (user == null || !user.isManaged()) {
-            if (!isLogin())
-                return null;
-            try {
-                Realm realm = Realm.getDefaultInstance();
-                realm.beginTransaction();
-                user = realm.where(User.class).equalTo("identifier", userProfile.getIdentifier()).findFirst();
-                realm.commitTransaction();
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
-        }
-        return user;
-    }
 
     public void updateUserAvatar(String path) {
         // // TODO: 16-12-20 用户头像
     }
 
-    /**
-     * 保存联系人信息到Realm中
-     *
-     * @param userInfos 所有的联系人
-     */
-//    public void saveContacts(List<UserInfo> userInfos) {
-//        Contacts c = getContacts();
-//        if (c == null) {
-//            checkRealm();
-//            realm.beginTransaction();
-//            contacts = realm.createObject(Contacts.class);
-//            realm.commitTransaction();
-//        }
-//        for (UserInfo userInfo : userInfos) {
-//            addContact(userInfo);
-//        }
-//    }
-
-//    /**
-//     * 保存联系人信息到Realm中
-//     *
-//     * @param userInfos 所有的联系人
-//     * @param realm     提供的realm实例
-//     * @return 返回保存所有联系人后的Contacts
-//     */
-//    public Contacts saveContacts(List<UserInfo> userInfos, Realm realm) {
-//        long id = JMessageClient.getMyInfo().getUserID();
-//        realm.beginTransaction();
-//        contacts = realm.where(Contacts.class).equalTo("owner.id", id).findFirst();
-//        if (contacts == null) {
-//            contacts = realm.createObject(Contacts.class);
-//            contacts.setOwner(user);
-//        }
-//        for (UserInfo userInfo : userInfos) {
-//            User user = realm.createObject(User.class);
-//            user.setIdentifier(userInfo.getUserID());
-//            user.setUsername(userInfo.getUserName());
-//            user.setNickname(userInfo.getNickname());
-//            user.setRemark(userInfo.getNotename());
-//            if (contacts.getContacts() == null) {
-//                RealmList<User> users = new RealmList<>();
-//                users.add(user);
-//                contacts.setContacts(users);
-//            } else {
-//                contacts.getContacts().add(user);
-//            }
-//        }
-//        realm.commitTransaction();
-//        return contacts;
-//    }
 
 
     /**
@@ -168,21 +97,22 @@ public class UserManager {
      * @param realm     提供的realm实例
      * @return 返回保存所有联系人后的Contacts
      */
-    public Contacts saveContacts(List<TIMUserProfile> userInfos, Realm realm) {
-        String identifier = UserInfo.getInstance().getId();
+    public Contacts saveContacts(List<UserInfo> userInfos, Realm realm) {
+        String identifier = userInfo.identifier();
         realm.beginTransaction();
         contacts = realm.where(Contacts.class).equalTo("owner.identifier", identifier).findFirst();
         if (contacts == null) {
             contacts = realm.createObject(Contacts.class);
             contacts.setOwner(user);
         }
-        for (TIMUserProfile userInfo : userInfos) {
+        for (UserInfo userInfo : userInfos) {
             User user = realm.createObject(User.class);
-            user.setIdentifier(userInfo.getIdentifier());
-            user.setRemark(userInfo.getRemark());
-            user.setHeadAvatar(userInfo.getFaceUrl());
-            user.setNickname(userInfo.getNickName());
-            user.setSex((int) userInfo.getGender().getValue());
+            user.setUsername(userInfo.getUserName());
+            user.setIdentifier(userInfo.getUserName());
+            user.setRemark(userInfo.getNotename());
+            user.setHeadAvatar(userInfo.getAvatar());
+            user.setNickname(userInfo.getNickname());
+            user.setSex(userInfo.getGender() == UserInfo.Gender.male ? 1 : 0);
 
             if (contacts.getContacts() == null) {
                 RealmList<User> users = new RealmList<>();
@@ -214,7 +144,7 @@ public class UserManager {
         if (contacts == null) {
             checkRealm();
             realm.beginTransaction();
-            contacts = realm.where(Contacts.class).equalTo("owner.id", user.getIdentifier()).findFirst();
+            contacts = realm.where(Contacts.class).equalTo("owner.identifier", userInfo.identifier()).findFirst();
             realm.commitTransaction();
         }
         return contacts;
@@ -227,72 +157,13 @@ public class UserManager {
      * @return 所有联系人
      */
     public Contacts getContacts(Realm realm) {
-        if (contacts == null) {
+        Contacts contacts = null;
             realm.beginTransaction();
-            contacts = realm.where(Contacts.class).equalTo("owner.id", user.getIdentifier()).findFirst();
+            contacts = realm.where(Contacts.class).equalTo("owner.identifier", userInfo.identifier()).findFirst();
             realm.commitTransaction();
-        }
         return contacts;
     }
 
-
-//    /**
-//     * 保存当前登录用户的信息
-//     */
-//    public void saveUser() {
-//        UserInfo userInfo = JMessageClient.getMyInfo();
-//        checkRealm();
-//        realm.beginTransaction();
-//        if (realm.where(User.class).equalTo("id", userInfo.getUserID()).findAll().isEmpty()) {
-//            user = realm.createObject(User.class);
-//            user.setIdentifier(userInfo.getUserID());
-//            user.setUsername(userInfo.getUserName());
-//            user.setNickname(userInfo.getNickname());
-//            user.setRemark(userInfo.getNotename());
-//            Contacts contact = realm.createObject(Contacts.class);
-//            contact.setOwner(this.user);
-//        }
-//        realm.commitTransaction();
-//    }
-
-    /**
-     * 使用默认的realm添加一个联系人
-     *
-     * @param userInfo 联系人信息
-     */
-//    public void addContact(UserInfo userInfo) {
-//        getContacts();
-//        if (contacts == null)
-//            return;
-//        checkRealm();
-//        addContact(userInfo, realm);
-//    }
-
-    /**
-     * 使用提供的realm，添加一个联系人
-     *
-     * @param userInfo 联系人信息
-     * @param realm    提供的realm操作实例
-     */
-
-//    public void addContact(UserInfo userInfo, Realm realm) {
-//        if (contacts == null)
-//            return;
-//        realm.beginTransaction();
-//        User user = realm.createObject(User.class);
-//        user.setIdentifier(userInfo.getUserID());
-//        user.setUsername(userInfo.getUserName());
-//        user.setNickname(userInfo.getNickname());
-//        user.setRemark(userInfo.getNotename());
-//        if (contacts.getContacts() == null) {
-//            RealmList<User> users = new RealmList<>();
-//            users.add(user);
-//            contacts.setContacts(users);
-//        } else {
-//            contacts.getContacts().add(user);
-//        }
-//        realm.commitTransaction();
-//    }
 
 
     /**
@@ -302,25 +173,23 @@ public class UserManager {
         return SPHelper.getBoolean(KEY_IS_LOGIN);
     }
 
+
+    public void login(String phone, BasicCallback callback){
+        Log.d(TAG, "login: "+phone);
+        JMessageClient.login(phone,Secure.encode(phone),callback);
+    }
+
+
+
     /**
      * 退出登录
      *
      * @return
      */
     public boolean logout() {
-        LoginBusiness.logout(new TIMCallBack() {
-            @Override
-            public void onError(int i, String s) {
-                Logger.d(i + "," + s);
-            }
-
-            @Override
-            public void onSuccess() {
-                Logger.d("logout success");
-            }
-        });
-        TlsBusiness.logout(myIdentifier());
         JMessageClient.logout();
+        SPHelper.put("USER", "");
+        SPHelper.putBoolean(KEY_IS_LOGIN,false);
         return true;
     }
 
@@ -351,7 +220,7 @@ public class UserManager {
      * @param realm     提供的realm
      * @return 保存后的群组
      */
-    public Group initGroupInfo(List<TIMGroupMemberInfo> userInfos, String groupId, String label, Realm realm) {
+    public Group initGroupInfo(List<UserInfo> userInfos, String groupId, String label, Realm realm) {
         Group group = null;
         String id = UserManager.instance().myIdentifier();
         realm.beginTransaction();
@@ -361,12 +230,12 @@ public class UserManager {
         group.setDescription(label);
         if (group.getMembers() == null)
             group.setMembers(new RealmList<Contact>());
-        for (TIMGroupMemberInfo user :
+        for (UserInfo user :
                 userInfos) {
-            if (user.getUser().equals(id) || group.getMembers().contains(Contact.createId(groupId, user.getUser())))
+            if (user.getUserName().equals(id) )
                 continue;
             Contact contact = new Contact();
-            contact.setId(Contact.createId(groupId, user.getUser()));
+            contact.setId(Contact.createId(groupId, user.getUserName()));
             contact.setUser(realm.where(User.class).equalTo("identifier", id).findFirst());
             contact.setTag(Contact.TAG_ADDING);
             contact.setStatus(Contact.STATUS_NONE);
@@ -377,31 +246,6 @@ public class UserManager {
         return group;
     }
 
-    /**
-     * 添加新的用户到指定群组中
-     *
-     * @param groupId 群组的id
-     * @param users   新添加的用户
-     */
-//    public void addGroupMembers(long groupId, List<TIMUserProfile> users, Realm realm) {
-//        Group group = null;
-//        realm.beginTransaction();
-//        group = realm.where(Group.class).equalTo("groupId", groupId).findFirst();
-//        if (group != null) {
-//            for (TIMUserProfile user :
-//                    users) {
-//                Contact contact = new Contact();
-//                contact.setUser(realm.where(User.class).equalTo("identifier", user.getIdentifier()).findFirst());
-//                contact.setUserInfo(user);
-//                contact.setTag(Contact.TAG_ADDING);
-//                contact.setStatus(Contact.STATUS_WAITING);
-//                contact.setId(Contact.createId(groupId, user.getIdentifier()));
-//                contact.setRepeatMonitor(false);
-//                group.getMembers().add(contact);
-//            }
-//        }
-//        realm.commitTransaction();
-//    }
 
     /**
      * 添加新的用户到指定群组中
@@ -409,21 +253,20 @@ public class UserManager {
      * @param groupId 群组的id
      * @param users   新添加的用户
      */
-    public void addGroupMembers(String groupId, List<TIMUserProfile> users, Realm realm) {
+    public void addGroupMembers(String groupId, List<User> users, Realm realm) {
         Group group = null;
         realm.beginTransaction();
         group = realm.where(Group.class).equalTo("groupId", groupId).findFirst();
         if (group != null) {
-            for (TIMUserProfile user :
+            for (User user :
                     users) {
-                if (user.getIdentifier().equals(myIdentifier()) ||
-                        group.getMembers().contains(Contact.createId(groupId, userProfile.getIdentifier())))
+                if (user.identifier().equals(myIdentifier()))
                     continue;
                 Contact contact = new Contact();
-                contact.setUser(realm.where(User.class).equalTo("identifier", user.getIdentifier()).findFirst());
+                contact.setUser(realm.where(User.class).equalTo("identifier", user.identifier()).findFirst());
                 contact.setTag(Contact.TAG_ADDING);
                 contact.setStatus(Contact.STATUS_WAITING);
-                contact.setId(Contact.createId(groupId, user.getIdentifier()));
+                contact.setId(Contact.createId(groupId, user.identifier()));
                 contact.setRepeatMonitor(false);
                 group.getMembers().add(contact);
             }
@@ -431,36 +274,6 @@ public class UserManager {
         Logger.d("" + group);
         realm.commitTransaction();
     }
-
-//    public void addGroupMembers(long groupId, UserInfo user, Realm realm) {
-//        Group group = null;
-//        if (realm.isInTransaction())
-//            realm.cancelTransaction();
-//        realm.beginTransaction();
-//        group = realm.where(Group.class).equalTo("groupId", groupId).findFirst();
-//        if (group != null) {
-//            RealmResults<Contact> contacts = realm.where(Contact.class)
-//                    .equalTo("id", Contact.createId(groupId, user.getUserID())).findAll();
-//            if (contacts.size() >= 1) {
-//                Contact contact = contacts.get(0);
-//                contact.setTag(Contact.TAG_ADDING);
-//                contact.setStatus(Contact.STATUS_WAITING);
-//                group.getMembers().add(contact);
-//                Logger.d("readd:" + contact.getUser().getJUsername());
-//            } else {
-//                Contact contact = new Contact();
-//                contact.setUser(realm.where(User.class).equalTo("id", user.getUserID()).findFirst());
-//                contact.setUserInfo(user);
-//                contact.setTag(Contact.TAG_ADDING);
-//                contact.setStatus(Contact.STATUS_WAITING);
-//                contact.setId(Contact.createId(groupId, user.getUserID()));
-//                contact.setRepeatMonitor(false);
-//                group.getMembers().add(contact);
-//                Logger.d("add:" + contact.getUser().getJUsername());
-//            }
-//        }
-//        realm.commitTransaction();
-//    }
 
 
     public void updateContactTag(IMessage msg, final int tag) {
@@ -496,22 +309,22 @@ public class UserManager {
     }
 
 
-    public String getUserDisplayName(User user) {
-        String identifier = user.getIdentifier().substring(3);
-        if (user.equals(this.user)) {
-            if (user.getNickname() != null && !user.getNickname().equals(""))
-                return identifier + "(" + user.getNickname() + ")";
+    public String getUserDisplayName(IUserInfo user) {
+        String identifier = user.username();
+        if (user.equals(userInfo)) {
+            if (user.nickname() != null && !user.nickname().equals(""))
+                return identifier + "(" + user.nickname() + ")";
         } else {
-            if (user.getRemark() != null && !user.getRemark().equals("")) {
-                return identifier + "(" + user.getRemark() + ")";
+            if (user.remark() != null && !user.remark().equals("")) {
+                return identifier + "(" + user.remark() + ")";
             }
         }
         return identifier;
     }
 
-    public String getUserDisplayName(cn.jpush.im.android.api.model.UserInfo user) {
-        String identifier = user.getUserName().substring(3);
-        if (this.user != null && this.user.getIdentifier().contains(identifier)) {
+    public String getUserDisplayName(UserInfo user) {
+        String identifier = user.getUserName();
+        if (userInfo != null && userInfo.username().contains(identifier)) {
             if (user.getNickname() != null && !user.getNickname().equals(""))
                 return identifier + "(" + user.getNickname() + ")";
         } else {
@@ -537,15 +350,15 @@ public class UserManager {
         MonitorManager.instance().post(RecordDetailContract.RecordDetailView.REFRESH);
     }
 
-    public void addContact(TIMUserProfile userProfile) {
+    public void addContact(UserInfo userInfo) {
         Realm realm = Realm.getDefaultInstance();
         realm.beginTransaction();
         User user = realm.createObject(User.class);
-        user.setIdentifier(userProfile.getIdentifier());
-        user.setUsername(User.getUserDescriber(userProfile));
-        user.setNickname(userProfile.getNickName());
-        user.setRemark(userProfile.getRemark());
-        user.setHeadAvatar(userProfile.getFaceUrl());
+        user.setIdentifier(String.valueOf(userInfo.getUserID()));
+        user.setUsername(User.getUserDescriber(userInfo));
+        user.setNickname(userInfo.getNickname());
+        user.setRemark(userInfo.getNotename());
+        user.setHeadAvatar(userInfo.getAvatar());
         if (contacts.getContacts() == null) {
             RealmList<User> users = new RealmList<>();
             users.add(user);
@@ -557,18 +370,20 @@ public class UserManager {
     }
 
     public void initMe() {
-        TIMFriendshipManager.getInstance().getSelfProfile(new TIMValueCallBack<TIMUserProfile>() {
-            @Override
-            public void onError(int i, String s) {
-                Logger.d(i + ":" + s);
-            }
-
-            @Override
-            public void onSuccess(TIMUserProfile user) {
-                Logger.d(user.toString());
-                userProfile = user;
-                SPHelper.put("USER", MessageHelper.getInstance().toJson(userProfile));
-            }
-        });
+        UserInfo userInfo = JMessageClient.getMyInfo();
+        Log.d(TAG, "initMe: "+userInfo);
+        realm.beginTransaction();
+        user = realm.where(User.class).equalTo("identifier", userInfo.getUserName()).findFirst();
+        if (user == null) {
+            user = new User(userInfo);
+            realm.copyToRealm(user);
+        }
+        if (user.isManaged())
+            this.userInfo = realm.copyFromRealm(user);
+        else {
+            this.userInfo = user;
+        }
+        realm.commitTransaction();
+        SPHelper.put("USER", MessageHelper.getInstance().toJson(userInfo));
     }
 }

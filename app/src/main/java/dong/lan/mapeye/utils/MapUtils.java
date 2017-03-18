@@ -43,6 +43,7 @@ import java.util.List;
 
 import dong.lan.mapeye.model.Point;
 import dong.lan.mapeye.model.Record;
+import dong.lan.mapeye.model.TraceLocation;
 import io.realm.RealmList;
 
 /**
@@ -221,6 +222,28 @@ public class MapUtils {
     public static void drawRoute(BaiduMap baiduMap, List<LatLng> points) {
         if (points == null || points.size() <= 1)
             return;
+        PolylineOptions polylineOptions = new PolylineOptions().points(points)
+                .width(10).color(0xee33FF00).keepScale(true);
+        baiduMap.addOverlay(polylineOptions);
+    }
+
+    public static void drawTrace(BaiduMap baiduMap, List<TraceLocation> locations,BitmapDescriptor bitmap){
+        if (locations == null || locations.size() <= 1)
+            return;
+        List<LatLng> points = new ArrayList<>(locations.size());
+        for(int i = 0,s = locations.size();i<s;i++) {
+            TraceLocation location = locations.get(i);
+            LatLng p = new LatLng(location.getLatitude(),location.getLongitude());
+            points.add(p);
+            if(bitmap!=null){
+                Marker marker = drawMarker(baiduMap,p,bitmap);
+                marker.setTitle(DateUtils.getTime(location.getCreateTime(),"yyyy.MM.dd hh:mm"));
+            }
+            if(i == 0){
+                setLocation(baiduMap,p,bitmap);
+            }
+        }
+
         PolylineOptions polylineOptions = new PolylineOptions().points(points)
                 .width(10).color(0xee33FF00).keepScale(true);
         baiduMap.addOverlay(polylineOptions);

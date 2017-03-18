@@ -25,6 +25,7 @@ import android.support.annotation.Nullable;
 import android.support.v4.widget.SwipeRefreshLayout;
 import android.support.v7.widget.GridLayoutManager;
 import android.support.v7.widget.RecyclerView;
+import android.util.Log;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.TextView;
@@ -122,6 +123,7 @@ public class ChatActivity extends BaseActivity implements ChatContract.View {
         int type = getIntent().getIntExtra(CHAT_TYPE, 0);
         String chatTittle = getIntent().getStringExtra(CHAT_TITTLE);
         String identifier = getIntent().getStringExtra(CHAT_PEER);
+        Log.d(TAG, "checkIntent: "+identifier);
         if (identifier.equals("")) {
             show("没有用户信息");
         } else {

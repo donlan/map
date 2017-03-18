@@ -1,24 +1,48 @@
 package dong.lan.mapeye.views;
 
+import android.Manifest;
 import android.animation.ObjectAnimator;
+import android.content.Intent;
 import android.os.Bundle;
+import android.os.Handler;
+import android.os.Message;
+import android.renderscript.ScriptGroup;
 import android.support.annotation.Nullable;
 import android.support.design.widget.TextInputEditText;
 import android.support.design.widget.TextInputLayout;
 import android.support.v7.widget.CardView;
+import android.text.TextUtils;
+import android.util.Log;
 import android.view.View;
 import android.view.ViewStub;
+import android.widget.Button;
+import android.widget.EditText;
+import android.widget.TextView;
+
+
+import java.lang.ref.SoftReference;
+import java.util.ArrayList;
+import java.util.List;
 
 import butterknife.BindView;
 import butterknife.ButterKnife;
 import butterknife.OnClick;
 import butterknife.OnFocusChange;
+import cn.jpush.im.android.api.JMessageClient;
+import cn.jpush.im.api.BasicCallback;
+import cn.smssdk.SMSSDK;
 import dong.lan.mapeye.R;
+import dong.lan.mapeye.common.SMSServer;
+import dong.lan.mapeye.common.Secure;
+import dong.lan.mapeye.common.UserManager;
 import dong.lan.mapeye.contracts.LoginAndSignContract;
 import dong.lan.mapeye.presenter.LoginRegisterPresenter;
+import dong.lan.mapeye.utils.InputUtils;
 import dong.lan.mapeye.views.customsView.CircleTextView;
-import dong.lan.mapeye.views.customsView.LabelTextView;
+import dong.lan.mapeye.views.customsView.EditTextWithClearButton;
 import dong.lan.mapeye.views.customsView.LoadingTextView;
+import dong.lan.permission.CallBack;
+import dong.lan.permission.Permission;
 
 /**
  * Created by 梁桂栋 on 16-11-8 ： 下午3:28.
@@ -27,163 +51,178 @@ import dong.lan.mapeye.views.customsView.LoadingTextView;
  * description: map
  */
 
-public class LoginAndSignActivity extends BaseActivity implements LoginAndSignContract.loginAndSignView {
+public class LoginAndSignActivity extends BaseActivity {
 
     private static final String TAG = "LoginAndSignActivity";
-    @BindView(R.id.switcher)
-    CircleTextView switcher;
 
-    @OnFocusChange(R.id.login_pwd)
-    public void loginUsernameFocus(){
-        clearErrorText(loginpwdInputLayout,loginUNLayout);
-    }
-    @OnFocusChange(R.id.login_username)
-    public void loginPwdFocus(){
-        clearErrorText(loginpwdInputLayout,loginUNLayout);
-    }
+    @BindView(R.id.phoneNumber)
+    EditTextWithClearButton phoneNumInput;
+    @BindView(R.id.requireCheckCode)
+    Button reqCheckCodeBtn;
 
-
-    @OnClick(R.id.switcher)
-    public void switcherFunc() {
-        if (isLogin) {
-            setTitle("注册");
-            switcher.setBgColorFromRes(R.color.md_orange_500);
-            switcher.setText("登录");
-            if (registerView == null) {
-                registerView = registerStub.inflate();
-                register = ButterKnife.findById(registerView, R.id.register);
-                regPwdLayout = ButterKnife.findById(registerView, R.id.regPwdLayout);
-                regPwd = ButterKnife.findById(registerView, R.id.regPwd);
-                regUsernameLayout = ButterKnife.findById(registerView, R.id.regUsernameLayout);
-                regUsername = ButterKnife.findById(registerView, R.id.regUsername);
-                register.setOnClickListener(new View.OnClickListener() {
-                    @Override
-                    public void onClick(View v) {
-                        checkAndRegister();
-                    }
-                });
-                regUsername.setOnFocusChangeListener(listener);
-                regPwd.setOnFocusChangeListener(listener);
-            }
-            loginView.setVisibility(View.GONE);
-            registerView.setVisibility(View.VISIBLE);
-            isLogin = false;
-            switcherAnim(loginView, registerView);
-
-        } else {
-            setTitle("登录");
-            switcher.setBgColorFromRes(R.color.colorAccent);
-            switcher.setText("注册");
-            registerView.setVisibility(View.GONE);
-            loginView.setVisibility(View.VISIBLE);
-            isLogin = true;
-            switcherAnim(registerView, loginView);
-        }
-    }
-
-    private View.OnFocusChangeListener listener = new View.OnFocusChangeListener() {
-        @Override
-        public void onFocusChange(View v, boolean hasFocus) {
-            clearErrorText(regUsernameLayout,regPwdLayout);
-        }
-    };
-
-
-    @BindView(R.id.cardView)
-    CardView loginView;
-    @BindView(R.id.registerStub)
-    ViewStub registerStub;
-    @BindView(R.id.login_username_layout)
-    TextInputLayout loginUNLayout;
-    @BindView(R.id.login_pwd_layout)
-    TextInputLayout loginpwdInputLayout;
-    @BindView(R.id.login_pwd)
-    TextInputEditText loginPwdInput;
-    @BindView(R.id.login_username)
-    TextInputEditText loginUsername;
-    @BindView(R.id.login)
-    LoadingTextView loginTV;
-    @OnClick(R.id.login)
-    public void login() {
-        String username = loginUsername.getText().toString();
-        if (username.equals("")) {
-            setTextLayout(loginUNLayout, "用户名不能为空");
+    @OnClick(R.id.requireCheckCode)
+    void requireSmsCode() {
+        String phoneNumber = phoneNumInput.getText().toString();
+        if (phoneNumber.length() != 11) {
+            toast("非法手机号码");
             return;
         }
-        String password = loginPwdInput.getText().toString();
-        if (password.length() < 6) {
-            setTextLayout(loginpwdInputLayout, "密码不能少于6个字符");
+        if (timeCount > 0) {
             return;
         }
-        loginTV.startLoading("登录中...");
-        presenter.login(username, password);
+        InputUtils.hideInputKeyboard(phoneNumInput);
+        timeCount = 60;
+        if (handler == null)
+            handler = new MyHandler(reqCheckCodeBtn);
+        handler.resetTimeCount();
+        handler.sendEmptyMessageDelayed(0, 1000);
+        reqCheckCodeBtn.setEnabled(false);
+        smsServer.getSMSCode("+86", phoneNumber);
     }
 
-    private boolean isLogin = true;
-    private View registerView;
-    private TextInputEditText regUsername;
-    private TextInputEditText regPwd;
-    private TextInputLayout regPwdLayout;
-    private LoadingTextView register;
-    private TextInputLayout regUsernameLayout;
-    private LoginRegisterPresenter presenter;
+    @BindView(R.id.checkCode_login)
+    EditText checkCodeInput;
+    @BindView(R.id.btn_login)
+    Button loginBtn;
 
+    @OnClick(R.id.btn_login)
+    void login() {
+        loginFlag = true;
+        tittleTv.setText("手机号登录");
+        submitAction();
+    }
+
+    @BindView(R.id.btn_register)
+    Button registerBtn;
+
+    @OnClick(R.id.btn_register)
+    void register() {
+        loginFlag = false;
+        tittleTv.setText("手机号注册");
+        submitAction();
+    }
+
+    @BindView(R.id.tittle)
+    TextView tittleTv;
+
+    private SMSServer smsServer;
+    private boolean loginFlag = true;
+    private MyHandler handler;
 
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_login_sign);
-
+        setContentView(R.layout.activity_login_register);
         bindView(this);
 
-        presenter = new LoginRegisterPresenter(this);
+        smsServer = new SMSServer(getApplicationContext(), new SMSServer.SmsCallback() {
+            @Override
+            public void onSmsCallback(final int action, final String data) {
+                runOnUiThread(new Runnable() {
+                    @Override
+                    public void run() {
+                        toast(data);
+                        reqCheckCodeBtn.setEnabled(true);
+                        if (action == SMSServer.ACTION_SUBMIT_CODE || action == SMSServer.ACTION_VERIFICATION_SUCCESS) {
+                            handlerLoginAction(loginFlag);
+                        }
+                    }
+                });
+            }
 
-        init();
+        });
+
+        List<String> pers = new ArrayList<>();
+        pers.add(Manifest.permission.READ_SMS);
+        pers.add(Manifest.permission.READ_PHONE_STATE);
+        pers.add(Manifest.permission.READ_CONTACTS);
+        pers.add(Manifest.permission.WRITE_EXTERNAL_STORAGE);
+        pers.add(Manifest.permission.RECEIVE_SMS);
+        Permission.instance().check(new CallBack<List<String>>() {
+            @Override
+            public void onResult(List<String> result) {
+
+            }
+        }, this, pers);
+
+
     }
 
 
-    private void init(){
+    private BasicCallback basicCallback = new BasicCallback() {
+        @Override
+        public void gotResult(int i, String s) {
+            Log.d(TAG, "gotResult: " + i);
+            if (i == 0) {
+                if (loginFlag) {
+                    timeCount = -1;
+                    Intent intent = new Intent(LoginAndSignActivity.this, MainActivity.class);
+                    intent.putExtra("loginFlag", loginFlag);
+                    startActivity(intent);
+                    finish();
+                } else {
+                    loginFlag = true;
+                    handlerLoginAction(loginFlag);
+                }
+            } else {
+                toast(s);
+            }
+        }
+    };
+
+    private void handlerLoginAction(boolean loginFlag) {
+        String phone = phoneNumInput.getText().toString();
+        if (loginFlag) {
+            UserManager.instance().login(phone, basicCallback);
+        } else {
+            JMessageClient.register(phone, Secure.encode(phone), basicCallback);
+        }
     }
-    public void checkAndRegister() {
-        String username = regUsername.getText().toString();
-        if (username.equals("")) {
-            setTextLayout(regUsernameLayout, "用户名不能为空");
+
+    private void submitAction() {
+        String phoneNumber = phoneNumInput.getText().toString();
+        String smsCode = checkCodeInput.getText().toString();
+        if (TextUtils.isEmpty(smsCode)) {
+            toast("没有输入验证码");
             return;
         }
-        String password = regPwd.getText().toString();
-        if (password.length() < 6) {
-            setTextLayout(regPwdLayout, "密码不能少于6个字符");
-            return;
-        }
-        register.startLoading("注册中...");
-        presenter.register(username, password);
-    }
-
-    public void setTextLayout(TextInputLayout textLayout, String text) {
-        textLayout.setErrorEnabled(true);
-        textLayout.setError(text);
-    }
-    public void clearErrorText(TextInputLayout curThis,TextInputLayout other){
-        curThis.setErrorEnabled(false);
-        other.setErrorEnabled(false);
+        smsServer.submitSMSCode("+86", phoneNumber, smsCode);
     }
 
     @Override
-    public void stopLogin() {
-        loginTV.stopLoading();
+    protected void onDestroy() {
+        super.onDestroy();
+        smsServer.destroy();
+        smsServer = null;
     }
 
-    @Override
-    public void stopRegister() {
-        register.stopLoading();
+    private int timeCount = -1;
+
+    private static class MyHandler extends Handler {
+        SoftReference<Button> reqCheckCodeBtnSR;
+        int timeCount = 60;
+
+        public MyHandler(Button button) {
+            super();
+            reqCheckCodeBtnSR = new SoftReference<Button>(button);
+        }
+
+        public void resetTimeCount(){
+            timeCount = 60;
+        }
+        @Override
+        public void handleMessage(Message msg) {
+            if(msg.what == 0) {
+                timeCount--;
+                if (reqCheckCodeBtnSR.get() != null) {
+                    if (timeCount > 0) {
+                        sendEmptyMessageDelayed(0, 1000);
+                        reqCheckCodeBtnSR.get().setText("请等待 " + timeCount + " 秒");
+                    } else {
+                        reqCheckCodeBtnSR.get().setText("获取验证码");
+                    }
+                }
+            }
+        }
     }
-
-    public void switcherAnim(View gone, View visible) {
-        gone.animate().alpha(0f).setDuration(300).start();
-        visible.animate().alpha(1f).setDuration(300).start();
-        ObjectAnimator.ofFloat(visible, "scaleX", 0.7f, 1f).setDuration(300).start();
-        ObjectAnimator.ofFloat(visible, "scaleY", 0.7f, 1f).setDuration(300).start();
-    }
-
-
 }

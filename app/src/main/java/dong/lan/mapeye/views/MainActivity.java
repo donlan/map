@@ -10,29 +10,33 @@ import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentPagerAdapter;
 import android.support.v4.view.ViewPager;
 import android.support.v7.widget.Toolbar;
-import android.text.format.DateUtils;
+import android.util.Log;
+
 
 import com.orhanobut.logger.Logger;
-import com.tencent.TIMFriendGroup;
-import com.tencent.TIMFriendshipProxyListener;
-import com.tencent.TIMFriendshipProxyStatus;
-import com.tencent.TIMManager;
-import com.tencent.TIMSNSChangeInfo;
-import com.tencent.TIMUserProfile;
-import com.tencent.qcloud.tlslibrary.activity.HostLoginActivity;
 
 import java.util.List;
+import java.util.Locale;
 
 import butterknife.BindView;
 import butterknife.OnClick;
 import cn.jpush.im.android.api.JMessageClient;
 import cn.jpush.im.android.api.event.ContactNotifyEvent;
+import cn.jpush.im.android.api.event.LoginStateChangeEvent;
+import cn.jpush.im.android.api.event.OfflineMessageEvent;
+import cn.jpush.im.android.api.model.Conversation;
+import cn.jpush.im.android.api.model.Message;
+import cn.jpush.im.android.api.model.UserInfo;
 import dong.lan.mapeye.R;
 import dong.lan.mapeye.common.UserManager;
 import dong.lan.mapeye.model.Affair;
-import dong.lan.mapeye.presenter.MainPresenter;
+import dong.lan.mapeye.model.users.Contact;
+import dong.lan.mapeye.model.users.User;
+import dong.lan.mapeye.utils.SPHelper;
 import dong.lan.mapeye.views.record.RecordFragment;
 import io.realm.Realm;
+
+import static dong.lan.mapeye.contracts.LoginAndSignContract.loginAndSignView.KEY_IS_LOGIN;
 
 /**
  * Created by 梁桂栋 on 16-11-6 ： 下午8:31.
@@ -75,7 +79,7 @@ public class MainActivity extends BaseActivity {
     @OnClick({R.id.drawer_logout, R.id.bar_logout})
     public void logout() {
         UserManager.instance().logout();
-        startActivity(new Intent(this, HostLoginActivity.class));
+        startActivity(new Intent(this, LoginAndSignActivity.class));
         finish();
     }
 
@@ -85,7 +89,6 @@ public class MainActivity extends BaseActivity {
     }
 
     Fragment[] tabs;
-    private MainPresenter presenter;
 
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
@@ -98,6 +101,12 @@ public class MainActivity extends BaseActivity {
 
     private void init() {
 
+        if (getIntent().getBooleanExtra("loginFlag", false)) {
+            SPHelper.putBoolean(KEY_IS_LOGIN, true);
+        }
+
+        UserManager.instance().initMe();
+
         setSupportActionBar(toolbar);
         JMessageClient.registerEventReceiver(this);
         tabs = new Fragment[4];
@@ -109,82 +118,103 @@ public class MainActivity extends BaseActivity {
         tabLayout.setupWithViewPager(viewPager);
         tabLayout.setTabTextColors(Color.WHITE, Color.WHITE);
         tabLayout.setSelectedTabIndicatorColor(Color.LTGRAY);
-        presenter = new MainPresenter(this);
 
-        UserManager.instance().initMe();
 
-        TIMManager.getInstance().setFriendshipProxyListener(new TIMFriendshipProxyListener() {
-            @Override
-            public void OnProxyStatusChange(TIMFriendshipProxyStatus timFriendshipProxyStatus) {
-                Logger.d(timFriendshipProxyStatus.getStatus());
-            }
-
-            @Override
-            public void OnAddFriends(List<TIMUserProfile> list) {
-                presenter.handlerInviteAccepted(list);
-                Logger.d(list);
-            }
-
-            @Override
-            public void OnDelFriends(List<String> list) {
-                presenter.handlerContactDeleted(list);
-                Logger.d(list);
-            }
-
-            @Override
-            public void OnFriendProfileUpdate(List<TIMUserProfile> list) {
-                Logger.d(list);
-            }
-
-            @Override
-            public void OnAddFriendReqs(List<TIMSNSChangeInfo> list) {
-                presenter.handlerReceivedInvite(list);
-                Logger.d(list);
-            }
-
-            @Override
-            public void OnAddFriendGroups(List<TIMFriendGroup> list) {
-                Logger.d(list);
-            }
-
-            @Override
-            public void OnDelFriendGroups(List<String> list) {
-                Logger.d(list);
-            }
-
-            @Override
-            public void OnFriendGroupUpdate(List<TIMFriendGroup> list) {
-                Logger.d(list);
-            }
-        });
     }
 
-    public void onEvent(ContactNotifyEvent event) {
-        String reason = event.getReason();
-        String fromUsername = event.getFromUsername();
-        String appkey = event.getfromUserAppKey();
+    public void onEvent(LoginStateChangeEvent event) {
+        LoginStateChangeEvent.Reason reason = event.getReason();//获取变更的原因
+        UserInfo myInfo = event.getMyInfo();//获取当前被登出账号的信息
+        switch (reason) {
+            case user_password_change:
+                //用户密码在服务器端被修改
+                break;
+            case user_logout:
+                toast("当前账号在其他设备登录,请重新登录");
+                UserManager.instance().logout();
+                startActivity(new Intent(this, LoginAndSignActivity.class));
+                finish();
+                break;
+            case user_deleted:
+                //用户被删除
+                break;
+        }
+    }
 
+
+
+    public void onEvent(ContactNotifyEvent event) {
+        final String reason = event.getReason();
+        final String fromUsername = event.getFromUsername();
+
+        Realm realm = Realm.getDefaultInstance();
         switch (event.getType()) {
             case invite_received://收到好友邀请
-                Realm realm = Realm.getDefaultInstance();
-                realm.beginTransaction();
-                Affair affair = realm.createObject(Affair.class);
-                affair.setContent("好友请求理由：" + reason);
-                affair.setCreatedTime(System.currentTimeMillis());
-                affair.setExtras("");
-                affair.setType(Affair.TYPE_USER_INVITE);
-                affair.setFromUser(fromUsername);
-                realm.commitTransaction();
-                realm.close();
+                realm.executeTransactionAsync(new Realm.Transaction() {
+                    @Override
+                    public void execute(Realm realm) {
+                        Affair affair = realm.createObject(Affair.class);
+                        affair.setId(String.valueOf(System.currentTimeMillis()));
+                        affair.setContent("好友请求理由：" + reason);
+                        affair.setCreatedTime(System.currentTimeMillis());
+                        affair.setExtras("");
+                        affair.setType(Affair.TYPE_USER_INVITE);
+                        affair.setHandle(Affair.HANDLE_AS_NOTICE);
+                        affair.setFromUser(fromUsername);
+                        Logger.d(affair);
+                    }
+                });
+
                 break;
             case invite_accepted://对方接收了你的好友邀请
-                //...
+                realm.executeTransactionAsync(new Realm.Transaction() {
+                    @Override
+                    public void execute(Realm realm) {
+                        Affair affair = realm.createObject(Affair.class);
+                        affair.setId(String.valueOf(System.currentTimeMillis()));
+                        affair.setContent(fromUsername + "同意了你的好友请求");
+                        affair.setCreatedTime(System.currentTimeMillis());
+                        affair.setExtras("");
+                        affair.setType(Affair.TYPE_NOTICE);
+                        affair.setHandle(Affair.HANDLE_AS_NOTICE);
+                        affair.setFromUser(fromUsername);
+                        Logger.d(affair);
+                    }
+                });
                 break;
             case invite_declined://对方拒绝了你的好友邀请
-                //...
+                realm.executeTransactionAsync(new Realm.Transaction() {
+                    @Override
+                    public void execute(Realm realm) {
+                        Affair affair = realm.createObject(Affair.class);
+                        affair.setId(String.valueOf(System.currentTimeMillis()));
+                        affair.setContent(fromUsername + " 拒绝了你的好友请求:" + reason);
+                        affair.setCreatedTime(System.currentTimeMillis());
+                        affair.setExtras("");
+                        affair.setType(Affair.TYPE_NOTICE);
+                        affair.setHandle(Affair.HANDLE_AS_NOTICE);
+                        affair.setFromUser(fromUsername);
+                        Logger.d(affair);
+                    }
+                });
                 break;
             case contact_deleted://对方将你从好友中删除
-                //...
+                realm.executeTransactionAsync(new Realm.Transaction() {
+                    @Override
+                    public void execute(Realm realm) {
+                        Affair affair = realm.createObject(Affair.class);
+                        affair.setId(String.valueOf(System.currentTimeMillis()));
+                        affair.setContent(fromUsername + "将你从好友中删除");
+                        affair.setCreatedTime(System.currentTimeMillis());
+                        affair.setExtras("");
+                        affair.setHandle(Affair.HANDLE_AS_NOTICE);
+                        affair.setType(Affair.TYPE_NOTICE);
+                        affair.setFromUser(fromUsername);
+
+                        realm.where(Contact.class).equalTo("user.identifier", fromUsername).findAll().deleteAllFromRealm();
+                        Logger.d(affair);
+                    }
+                });
                 break;
             default:
                 break;

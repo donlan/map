@@ -2,7 +2,7 @@ apply plugin: 'com.android.library'
 
 android {
     compileSdkVersion 25
-    buildToolsVersion '25.0.0'
+    buildToolsVersion '25.0.2'
     defaultConfig {
         minSdkVersion 16
         targetSdkVersion 25
@@ -25,31 +25,24 @@ android {
 dependencies {
     compile fileTree(include: ['*.jar'], dir: 'libs')
     testCompile 'junit:junit:4.12'
-    compile 'com.github.bumptech.glide:glide:3.5.2'
+    compile 'com.github.donlan:LabelTextView:1.0'
+    compile 'com.github.bumptech.glide:glide:3.7.0'
     compile 'io.reactivex:rxandroid:1.2.1'
     compile 'io.reactivex:rxjava:1.1.6'
     compile 'com.orhanobut:logger:1.15'
     compile files('libs/BmobSDK_3.5.1_20160719.jar')
-    compile files('libs/bugly_1.3.0_imsdk_release.jar')
     compile files('libs/gson-2.6.2.jar')
-    compile files('libs/HwPush_SDK_V2705.jar')
-    compile files('libs/imsdk.jar')
-    compile files('libs/libammsdk.jar')
-    compile files('libs/MiPush_SDK_Client_3_0_3.jar')
-    compile files('libs/mobilepb.jar')
     compile files('libs/okhttp-3.3.1.jar')
     compile files('libs/okio-1.7.0.jar')
-    compile files('libs/open_sdk.jar')
     compile files('libs/org.apache.http.legacy.jar')
-    compile files('libs/qalsdk.jar')
-    compile files('libs/soload.jar')
-    compile files('libs/tls_sdk.jar')
-    compile files('libs/wup-1.0.0-SNAPSHOT.jar')
     compile files('libs/baidumapapi_base_v4_1_1.jar')
     compile files('libs/baidumapapi_cloud_v4_1_1.jar')
     compile files('libs/baidumapapi_map_v4_1_1.jar')
     compile files('libs/baidumapapi_radar_v4_1_1.jar')
     compile files('libs/baidumapapi_search_v4_1_1.jar')
     compile files('libs/baidumapapi_util_v4_1_1.jar')
-    compile files('libs/jmessage-android-1.4.2.jar')
+    compile 'com.android.support:design:25.2.0'
+    compile 'com.android.support:appcompat-v7:25.2.0'
+    compile files('libs/jcore-android_v1.1.0.jar')
+    compile files('libs/jmessage-android_v2.1.0.jar')
 }

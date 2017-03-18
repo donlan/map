@@ -33,13 +33,13 @@ import android.widget.TextView;
 
 import butterknife.BindView;
 import butterknife.ButterKnife;
+import dong.lan.library.LabelTextView;
 import dong.lan.mapeye.R;
 import dong.lan.mapeye.common.UserManager;
 import dong.lan.mapeye.contracts.ContactsContract;
 import dong.lan.mapeye.contracts.UserCenterContract;
 import dong.lan.mapeye.model.users.User;
 import dong.lan.mapeye.presenter.ContactsPresenter;
-import dong.lan.mapeye.views.customsView.LabelTextView;
 
 /**
  * Created by 梁桂栋 on 16-11-15 ： 下午2:02.
@@ -121,7 +121,7 @@ public class ContactsFragment extends BaseFragment implements ContactsContract.V
                     viewHolder.count.setVisibility(View.GONE);
                     Intent intent = new Intent(getActivity(), UserCenterActivity.class);
                     intent.putExtra(UserCenterContract.View.KEY_USERNAME,
-                            presenter.getContact(viewHolder.getLayoutPosition()).getIdentifier());
+                            presenter.getContact(viewHolder.getLayoutPosition()).identifier());
                     startActivity(intent);
                 }
             });

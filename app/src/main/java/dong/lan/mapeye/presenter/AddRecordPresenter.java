@@ -18,8 +18,7 @@ import com.baidu.mapapi.map.MyLocationConfiguration;
 import com.baidu.mapapi.map.OverlayOptions;
 import com.baidu.mapapi.map.PolylineOptions;
 import com.baidu.mapapi.model.LatLng;
-import com.tencent.TIMGroupManager;
-import com.tencent.TIMValueCallBack;
+import com.orhanobut.logger.Logger;
 
 import org.greenrobot.eventbus.EventBus;
 
@@ -28,7 +27,10 @@ import java.util.Collections;
 import java.util.Date;
 import java.util.List;
 
+import cn.jpush.im.android.api.JMessageClient;
+import cn.jpush.im.android.api.callback.CreateGroupCallback;
 import dong.lan.mapeye.R;
+import dong.lan.mapeye.bmob.Action;
 import dong.lan.mapeye.common.UserManager;
 import dong.lan.mapeye.contracts.AddRecordContract;
 import dong.lan.mapeye.events.MainEvent;
@@ -106,59 +108,53 @@ public class AddRecordPresenter implements AddRecordContract.Presenter {
                             view.toast("不能是空标题");
                             return;
                         }
-
-                        TIMGroupManager.getInstance().createGroup("Public",
-                                Collections.singletonList(UserManager.instance().myIdentifier()),
-                                editText.getText().toString(),
-                                new TIMValueCallBack<String>() {
-                                    @Override
-                                    public void onError(int i, String s) {
-                                        view.toast(s);
-                                        dismissProgress();
-                                    }
-
-                                    @Override
-                                    public void onSuccess(String groupId) {
-                                        try {
-                                            progress.setMessage("生成" + Record.getRecordTypeStr(type) + " 中...");
-                                            progress.show();
-                                            final String label = editText.getText().toString();
-                                            Realm realm = Realm.getDefaultInstance();
-                                            realm.beginTransaction();
-                                            User user = realm.where(User.class).equalTo("identifier",UserManager.instance().myIdentifier()).findFirst();
-                                            Record record = realm.createObject(Record.class);
-                                            record.setId(groupId);
-                                            record.setCreateTime(new Date());
-                                            record.setOwn(user);
-                                            record.setLabel(label);
-                                            record.setInfo(label);
-                                            record.setType(type);
-                                            record.setRadius(radius);
-                                            record.setPoints(new RealmList<Point>());
-                                            for (int i = 0, s = points.size(); i < s; i++) {
-                                                Point point = new Point(points.get(i));
-                                                record.getPoints().add(point);
-                                            }
-                                            Group group = realm.createObject(Group.class);
-                                            group.setOwner(user);
-                                            group.setDescription(label);
-                                            group.setGroupId(groupId);
-                                            group.setMembers(new RealmList<Contact>());
-                                            realm.commitTransaction();
-                                            Record r = realm.copyFromRealm(record);
-                                            realm.close();
-                                            EventBus.getDefault().post(new MainEvent(MainEvent.CODE_ADDED_RECORD, r));
-                                            view.toast("保存成功");
-                                            dismissProgress();
-
-                                        } catch (Exception e) {
-                                            e.printStackTrace();
-                                            view.toast(e.getMessage());
-                                        } finally {
-                                            dismissProgress();
+                        progress.setMessage("生成" + Record.getRecordTypeStr(type) + " 中...");
+                        progress.show();
+                        JMessageClient.createGroup(editText.getText().toString(), editText.getText().toString(), new CreateGroupCallback() {
+                            @Override
+                            public void gotResult(int code, String s, long groupId) {
+                                if (code == 0) {
+                                    try {
+                                        final String label = editText.getText().toString();
+                                        Realm realm = Realm.getDefaultInstance();
+                                        realm.beginTransaction();
+                                        User user = realm.where(User.class).equalTo("identifier", UserManager.instance().myIdentifier()).findFirst();
+                                        Record record = realm.createObject(Record.class);
+                                        record.setId(String.valueOf(groupId));
+                                        record.setCreateTime(System.currentTimeMillis());
+                                        record.setOwn(user);
+                                        record.setLabel(label);
+                                        record.setInfo(label);
+                                        record.setType(type);
+                                        record.setRadius(radius);
+                                        record.setPoints(new RealmList<Point>());
+                                        for (int i = 0, size = points.size(); i < size; i++) {
+                                            Point point = new Point(points.get(i));
+                                            record.getPoints().add(point);
                                         }
+                                        Group group = realm.createObject(Group.class);
+                                        group.setOwner(user);
+                                        group.setDescription(label);
+                                        group.setGroupId(String.valueOf(groupId));
+                                        group.setMembers(new RealmList<Contact>());
+                                        realm.commitTransaction();
+                                        Record r = realm.copyFromRealm(record);
+                                        realm.close();
+                                        EventBus.getDefault().post(new MainEvent(MainEvent.CODE_ADDED_RECORD, r));
+                                        view.toast("保存成功");
+                                        dismissProgress();
+                                        //Action.saveRecord(record, group);
+                                    } catch (Exception e) {
+                                        e.printStackTrace();
+                                        view.toast(e.getMessage());
                                     }
-                                });
+                                } else {
+                                    view.toast(s);
+                                    Logger.d(s);
+                                }
+                                dismissProgress();
+                            }
+                        });
                     }
                 }).show();
     }
@@ -186,7 +182,7 @@ public class AddRecordPresenter implements AddRecordContract.Presenter {
             view.toast("一个路径至少需要两个标志点");
             return;
         }
-        type = Record.TYPE_CIRCLE;
+        type = Record.TYPE_ROUTE;
         baiduMap.clear();
         MapUtils.drawRecord(baiduMap, points, Record.TYPE_ROUTE);
         MapUtils.onlyDrawMarker(baiduMap, points, bitmap);

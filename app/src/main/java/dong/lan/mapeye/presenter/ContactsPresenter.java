@@ -21,14 +21,11 @@
 package dong.lan.mapeye.presenter;
 
 
-import com.orhanobut.logger.Logger;
-import com.tencent.TIMFriendshipManager;
-import com.tencent.TIMUserProfile;
-import com.tencent.TIMValueCallBack;
-
-import java.util.ArrayList;
 import java.util.List;
 
+import cn.jpush.im.android.api.ContactManager;
+import cn.jpush.im.android.api.callback.GetUserInfoListCallback;
+import cn.jpush.im.android.api.model.UserInfo;
 import dong.lan.mapeye.common.UserManager;
 import dong.lan.mapeye.contracts.ContactsContract;
 import dong.lan.mapeye.model.users.Contacts;
@@ -71,28 +68,16 @@ public class ContactsPresenter implements ContactsContract.Presenter {
                 if (contacts != null && !contacts.getContacts().isEmpty())
                     view.initAdapter();
                 else {
-
-                    TIMFriendshipManager.getInstance().getFriendList(new TIMValueCallBack<List<TIMUserProfile>>() {
+                    ContactManager.getFriendList(new GetUserInfoListCallback() {
                         @Override
-                        public void onError(int i, String s) {
-                            view.toast(s);
-                            Logger.d(i+","+s);
-                        }
-
-                        @Override
-                        public void onSuccess(List<TIMUserProfile> timUserProfiles) {
-                            if (timUserProfiles == null || timUserProfiles.isEmpty()) {
-                                view.show("你目前没有联系人");
-                            } else {
-                                List<TIMUserProfile> userProfiles = new ArrayList<>();
-                                for(TIMUserProfile profile:timUserProfiles){
-                                    if(profile.getIdentifier().equals(UserManager.instance().myIdentifier()))
-                                        continue;
-                                    userProfiles.add(profile);
-                                }
-                                Realm realm = Realm.getDefaultInstance();
-                                contacts = UserManager.instance().saveContacts(userProfiles, realm);
+                        public void gotResult(int i, String s, List<UserInfo> list) {
+                            if (i == 0) {
+                                if (list == null || list.isEmpty())
+                                    view.show("你目前没有联系人");
+                                contacts = UserManager.instance().saveContacts(list, realm);
                                 view.initAdapter();
+                            } else {
+                                view.toast(s);
                             }
                         }
                     });

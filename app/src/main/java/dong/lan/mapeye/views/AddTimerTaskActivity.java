@@ -21,35 +21,20 @@
 package dong.lan.mapeye.views;
 
 import android.os.Bundle;
-import android.support.v4.view.ViewPager;
 import android.text.TextUtils;
-import android.text.style.TtsSpan;
-import android.view.LayoutInflater;
-import android.view.View;
 import android.widget.CheckBox;
-import android.widget.DatePicker;
 import android.widget.TextView;
-import android.widget.TimePicker;
-
-import com.orhanobut.logger.Logger;
-
-import java.util.ArrayList;
-import java.util.Calendar;
-import java.util.List;
-import java.util.Locale;
 
 import butterknife.BindView;
 import butterknife.OnCheckedChanged;
 import butterknife.OnClick;
 import dong.lan.mapeye.R;
-import dong.lan.mapeye.adapter.ViewpagerAdapter;
 import dong.lan.mapeye.common.Config;
 import dong.lan.mapeye.model.MonitorTimer;
 import dong.lan.mapeye.model.Record;
 import dong.lan.mapeye.model.users.User;
 import dong.lan.mapeye.utils.DateUtils;
 import dong.lan.mapeye.views.customsView.DateTimePicker;
-import dong.lan.mapeye.views.customsView.ToggleButton;
 import io.realm.Realm;
 
 public class AddTimerTaskActivity extends BaseActivity {

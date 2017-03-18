@@ -21,32 +21,23 @@
 package dong.lan.mapeye.views;
 
 import android.os.Bundle;
-import android.telecom.VideoProfile;
 import android.widget.TextView;
 
-import com.amap.api.maps.AMap;
-import com.amap.api.maps.CameraUpdateFactory;
-import com.amap.api.maps.MapView;
-import com.amap.api.maps.model.LatLng;
-import com.amap.api.maps.model.MarkerOptions;
-import com.amap.api.trace.LBSTraceClient;
-import com.amap.api.trace.TraceListener;
-import com.amap.api.trace.TraceLocation;
-import com.amap.api.trace.TraceOverlay;
-import com.baidu.mapapi.map.Marker;
-import com.orhanobut.logger.Logger;
+import com.baidu.mapapi.map.BaiduMap;
+import com.baidu.mapapi.map.BitmapDescriptorFactory;
+import com.baidu.mapapi.map.MapView;
 
 import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
 
 import butterknife.BindView;
 import butterknife.OnClick;
 import dong.lan.mapeye.R;
 import dong.lan.mapeye.model.MonitorRecode;
+import dong.lan.mapeye.model.TraceLocation;
+import dong.lan.mapeye.utils.MapUtils;
 import io.realm.Realm;
 
-public class MonitorRecordDetailActivity extends BaseActivity implements TraceListener {
+public class MonitorRecordDetailActivity extends BaseActivity  {
 
     public static final String KEY_MONITOR_RECORD_ID = "monitorRecordId";
     public static final String KEY_POSITION = "position";
@@ -78,7 +69,7 @@ public class MonitorRecordDetailActivity extends BaseActivity implements TraceLi
         finish();
     }
 
-    private AMap aMap;
+    private BaiduMap baiduMap;
     private ArrayList<TraceLocation> traceLocations;
 
     @Override
@@ -86,12 +77,11 @@ public class MonitorRecordDetailActivity extends BaseActivity implements TraceLi
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_monitor_record_detail);
         bindView(this);
-        mapView.onCreate(savedInstanceState);
         checkIntent();
     }
 
     private void checkIntent() {
-        aMap = mapView.getMap();
+        baiduMap = mapView.getMap();
         barRight.setText("删除");
         if (getIntent().hasExtra(KEY_MONITOR_RECORD_ID)) {
             id = getIntent().getLongExtra(KEY_MONITOR_RECORD_ID, 0);
@@ -104,21 +94,7 @@ public class MonitorRecordDetailActivity extends BaseActivity implements TraceLi
                     if (monitorRecode.getLocations() == null || monitorRecode.getLocations().isEmpty()) {
                         toast("此记录没有监控记录点");
                     } else {
-                        LBSTraceClient traceClient = LBSTraceClient.getInstance(getApplicationContext());
-                        traceLocations = new ArrayList<>();
-                        for (dong.lan.mapeye.model.TraceLocation traceLocation : monitorRecode.getLocations()) {
-                            Logger.d(traceLocation);
-                            traceLocations.add(new TraceLocation(traceLocation.getLatitude(),
-                                    traceLocation.getLongitude(),
-                                    traceLocation.getSpeed(),
-                                    traceLocation.getBearing(),
-                                    traceLocation.getCreateTime()));
-                        }
-
-                        traceClient.queryProcessedTrace((int) monitorRecode.getId(),
-                                traceLocations,
-                                LBSTraceClient.TYPE_BAIDU,
-                                this);
+                        MapUtils.drawTrace(baiduMap,monitorRecode.getLocations(), BitmapDescriptorFactory.fromResource(R.drawable.dot_32_red));
                     }
                 }
 
@@ -126,28 +102,7 @@ public class MonitorRecordDetailActivity extends BaseActivity implements TraceLi
         }
     }
 
-    @Override
-    public void onRequestFailed(int i, String s) {
-        toast(s);
-        for (TraceLocation traceLocation : traceLocations) {
-            aMap.addMarker(new MarkerOptions().position(new LatLng(traceLocation.getLatitude(), traceLocation.getLongitude())));
-        }
-    }
 
-    @Override
-    public void onTraceProcessing(int i, int i1, List<LatLng> list) {
-    }
-
-    @Override
-    public void onFinished(int lineId, List<LatLng> list, int distance, int waitTime) {
-        LatLng l = list.get(0);
-        aMap.moveCamera(CameraUpdateFactory.changeLatLng(l));
-        aMap.moveCamera(CameraUpdateFactory.zoomTo(15));
-        TraceOverlay traceOverlay = new TraceOverlay(aMap, list);
-        traceOverlay.setDistance(distance);
-        traceOverlay.setWaitTime(waitTime);
-        traceOverlay.setTraceStatus(TraceOverlay.TRACE_STATUS_FINISH);
-    }
 
 
     @Override
@@ -167,12 +122,12 @@ public class MonitorRecordDetailActivity extends BaseActivity implements TraceLi
         super.onDestroy();
         if (mapView != null)
             mapView.onDestroy();
-        if (aMap != null)
-            aMap.clear();
+        if (baiduMap != null)
+            baiduMap.clear();
         if (traceLocations != null)
             traceLocations.clear();
         traceLocations = null;
-        aMap = null;
+        baiduMap = null;
         mapView = null;
     }
 }

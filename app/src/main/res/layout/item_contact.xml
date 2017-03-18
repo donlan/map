@@ -53,7 +53,7 @@
         android:textColor="@color/md_grey_600"
         android:textSize="18sp" />
 
-    <dong.lan.mapeye.views.customsView.LabelTextView
+    <dong.lan.library.LabelTextView
         android:id="@+id/itemContactCount"
         android:layout_width="20dp"
         android:layout_height="20dp"

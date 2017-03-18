@@ -41,6 +41,7 @@ import org.greenrobot.eventbus.ThreadMode;
 import butterknife.BindView;
 import butterknife.ButterKnife;
 import butterknife.Unbinder;
+import dong.lan.library.LabelTextView;
 import dong.lan.mapeye.R;
 import dong.lan.mapeye.contracts.RecordContract;
 import dong.lan.mapeye.events.MainEvent;
@@ -49,7 +50,6 @@ import dong.lan.mapeye.presenter.RecordPresenter;
 import dong.lan.mapeye.utils.StringHelper;
 import dong.lan.mapeye.views.AddRecordActivity;
 import dong.lan.mapeye.views.BaseFragment;
-import dong.lan.mapeye.views.customsView.LabelTextView;
 import dong.lan.mapeye.views.customsView.RecycleViewDivider;
 
 import static dong.lan.mapeye.contracts.RecordDetailContract.RecordDetailView.KEY_POSITION;

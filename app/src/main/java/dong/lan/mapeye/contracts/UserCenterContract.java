@@ -24,7 +24,9 @@ import android.content.Intent;
 import android.graphics.Bitmap;
 import android.net.Uri;
 
-import com.tencent.TIMUserProfile;
+
+import cn.jpush.im.android.api.model.UserInfo;
+import dong.lan.mapeye.model.users.IUserInfo;
 
 
 /**
@@ -55,7 +57,7 @@ public final class UserCenterContract {
          * @param userInfo   用户信息
          * @param isUserSelf 是否是用户自己
          */
-        void initView(TIMUserProfile userInfo, boolean isUserSelf);
+        void initView(IUserInfo userInfo, boolean isUserSelf);
     }
 
     public interface Presenter {

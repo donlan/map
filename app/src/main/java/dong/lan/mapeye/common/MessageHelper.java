@@ -24,12 +24,6 @@ package dong.lan.mapeye.common;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.orhanobut.logger.Logger;
-import com.tencent.TIMConversation;
-import com.tencent.TIMConversationType;
-import com.tencent.TIMElem;
-import com.tencent.TIMManager;
-import com.tencent.TIMMessage;
-import com.tencent.TIMValueCallBack;
 
 
 /**
@@ -121,12 +115,6 @@ public class MessageHelper {
 //    }
 
 
-    public static void sendTIMMessage(String toIdentifier, TIMMessage message, TIMValueCallBack<TIMMessage> callBack) {
-        Logger.d(toIdentifier);
-        TIMConversation conversation = TIMManager.getInstance()
-                .getConversation(TIMConversationType.C2C, toIdentifier);
-        conversation.sendMessage(message, callBack);
-    }
 
     /**
      * 将指定消息字符串通过Gson解析成自定的目标实体

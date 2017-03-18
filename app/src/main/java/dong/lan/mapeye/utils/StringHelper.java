@@ -41,7 +41,7 @@ public final class StringHelper {
         if (contact == null)
             return "";
         String text = "";
-        if (contact.getStartMonitorTime() == null) {
+        if (contact.getStartMonitorTime() == 0) {
             text = "没有设置监听时间";
         } else {
             boolean isRepeat = contact.isRepeatMonitor();
@@ -49,9 +49,9 @@ public final class StringHelper {
             if (isRepeat)
                 sdf = new SimpleDateFormat("a HH:mm", Locale.CHINA);
             else
-                sdf = new SimpleDateFormat("YYYY-MM-dd HH:mm", Locale.CHINA);
+                sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm", Locale.CHINA);
             text += "开始时间： " + sdf.format(contact.getStartMonitorTime());
-            if (contact.getEndMonitorTime() != null)
+            if (contact.getEndMonitorTime() != 0)
                 text += "  结束时间： " + sdf.format(contact.getEndMonitorTime());
         }
         return text;

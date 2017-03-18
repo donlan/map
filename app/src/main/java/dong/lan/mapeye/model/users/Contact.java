@@ -21,7 +21,6 @@
 package dong.lan.mapeye.model.users;
 
 
-import com.tencent.TIMUserProfile;
 
 import java.util.Date;
 
@@ -49,14 +48,12 @@ public class Contact extends RealmObject {
 
 
     private long id;                    //对应域UserInfo.getUserId()
-    private Date startMonitorTime;      //定时监听位置变化的开始时间
-    private Date endMonitorTime;        //定时监听位置变化的结束时间
+    private long startMonitorTime;      //定时监听位置变化的开始时间
+    private long endMonitorTime;        //定时监听位置变化的结束时间
     private boolean isRepeatMonitor;    //是否重复监听（单次定时监听还是重复监听）
     private int status;                 //被监听用户的状态
     private int tag;                    //被监听用户的绑定标记
     private User user;                  //所对应的User用户
-    @Ignore
-    private TIMUserProfile userInfo;          //不存入Realm的UserInfo
 
     public static long createId(String groupId, String userId) {
         return groupId.hashCode() ^ userId.hashCode();
@@ -70,19 +67,19 @@ public class Contact extends RealmObject {
         this.id = id;
     }
 
-    public Date getStartMonitorTime() {
+    public long getStartMonitorTime() {
         return startMonitorTime;
     }
 
-    public void setStartMonitorTime(Date startMonitorTime) {
+    public void setStartMonitorTime(long startMonitorTime) {
         this.startMonitorTime = startMonitorTime;
     }
 
-    public Date getEndMonitorTime() {
+    public long getEndMonitorTime() {
         return endMonitorTime;
     }
 
-    public void setEndMonitorTime(Date endMonitorTime) {
+    public void setEndMonitorTime(long endMonitorTime) {
         this.endMonitorTime = endMonitorTime;
     }
 
@@ -116,14 +113,6 @@ public class Contact extends RealmObject {
 
     public void setUser(User user) {
         this.user = user;
-    }
-
-    public TIMUserProfile getUserInfo() {
-        return userInfo;
-    }
-
-    public void setUserInfo(TIMUserProfile userInfo) {
-        this.userInfo = userInfo;
     }
 
 

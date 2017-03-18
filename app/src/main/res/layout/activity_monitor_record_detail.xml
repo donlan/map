@@ -27,7 +27,7 @@
     tools:context="dong.lan.mapeye.views.MonitorRecordDetailActivity">
 
     <include layout="@layout/action_bar"/>
-    <com.amap.api.maps.MapView
+    <com.baidu.mapapi.map.MapView
         android:layout_marginTop="@dimen/action_bar_height"
         android:id="@+id/mapView"
         android:layout_width="match_parent"

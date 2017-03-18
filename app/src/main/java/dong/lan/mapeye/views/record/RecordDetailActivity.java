@@ -52,6 +52,7 @@ import java.util.List;
 import butterknife.BindView;
 import butterknife.ButterKnife;
 import butterknife.OnClick;
+import dong.lan.library.LabelTextView;
 import dong.lan.mapeye.R;
 import dong.lan.mapeye.common.MonitorManager;
 import dong.lan.mapeye.common.UserManager;
@@ -67,7 +68,6 @@ import dong.lan.mapeye.utils.StringHelper;
 import dong.lan.mapeye.views.BaseActivity;
 import dong.lan.mapeye.views.ChatActivity;
 import dong.lan.mapeye.views.ContactSelectActivity;
-import dong.lan.mapeye.views.customsView.LabelTextView;
 import dong.lan.mapeye.views.customsView.PinView;
 import dong.lan.mapeye.views.customsView.ToggleCheckBox;
 import rx.Subscription;
@@ -374,7 +374,7 @@ public class RecordDetailActivity extends BaseActivity implements RecordDetailCo
                     Contact contact = presenter.getContact(holder.getLayoutPosition());
                     Intent intent = new Intent(RecordDetailActivity.this, ChatActivity.class);
                     intent.putExtra(ChatActivity.CHAT_TITTLE,contact.getUser().displayName());
-                    intent.putExtra(ChatActivity.CHAT_PEER, contact.getUser().getIdentifier());
+                    intent.putExtra(ChatActivity.CHAT_PEER, contact.getUser().identifier());
                     startActivity(intent);
                 }
             });

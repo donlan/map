@@ -25,36 +25,47 @@
     android:orientation="vertical"
     android:padding="12dp">
 
-    <dong.lan.mapeye.views.customsView.LabelTextView
+    <dong.lan.library.LabelTextView
         android:id="@+id/timer_repeat"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginBottom="8dp"
-        android:padding="8dp"
+        android:layout_margin="8dp"
+        android:paddingLeft="10dp"
+        android:paddingTop="4dp"
+        android:paddingBottom="4dp"
+        android:paddingRight="10dp"
         android:text="单次"
         android:textColor="@color/md_white_1000"
         android:textSize="16sp"
         app:bg_color="@color/colorPrimary"
-        app:radius="24dp" />
+        app:radius="8dp" />
 
-    <dong.lan.mapeye.views.customsView.LabelTextView
+    <dong.lan.library.LabelTextView
+
         android:id="@+id/timer_record_info"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_below="@id/timer_repeat"
         android:layout_toRightOf="@id/timer_repeat"
-        android:paddingBottom="6dp"
         android:paddingLeft="16dp"
         android:paddingRight="16dp"
-        android:paddingTop="6dp"
-        android:text="反倒是 方式打开会费刷卡和佛恩f水电费费刷卡和"
+        android:paddingTop="8dp"
+        android:paddingBottom="8dp"
+        android:layout_marginTop="8dp"
         android:textColor="@color/colorPrimary"
         android:textSize="20sp"
         app:bg_color="@color/colorPrimary"
+        app:clickAnimation="false"
         app:radius="8dp"
         app:strokeWidth="1dp" />
 
-
+    <ImageView
+        android:id="@+id/timer_arrow_tag"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_below="@id/timer_record_info"
+        android:layout_centerHorizontal="true"
+        android:layout_marginTop="10dp"
+        android:background="@drawable/arrow_right_grey_48" />
 
     <TextView
         android:id="@+id/timer_start_time"
@@ -62,6 +73,8 @@
         android:layout_height="wrap_content"
         android:layout_below="@id/timer_record_info"
         android:layout_marginTop="12dp"
+        android:layout_toLeftOf="@id/timer_arrow_tag"
+        android:gravity="center"
         android:textSize="18sp" />
 
 
@@ -69,15 +82,21 @@
         android:id="@+id/timer_end_time"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_below="@id/timer_start_time"
-        android:layout_marginTop="12dp"
+        android:layout_below="@id/timer_record_info"
+        android:layout_marginTop="10dp"
+        android:layout_toRightOf="@id/timer_arrow_tag"
+        android:gravity="center"
         android:textSize="18sp" />
 
     <dong.lan.mapeye.views.customsView.ToggleButton
+        app:tb_circle_radius="20dp"
+        app:tb_check_bg_color="@color/md_blue_200"
+        app:tb_uncheck_color="@color/md_grey_700"
+        app:tb_check_color="@color/colorPrimary"
         android:id="@+id/timer_switcher"
-        android:layout_width="50dp"
-        android:layout_height="30dp"
-        android:layout_below="@id/timer_end_time"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_below="@id/timer_arrow_tag"
         android:layout_centerHorizontal="true"
         android:layout_marginTop="12dp" />
 

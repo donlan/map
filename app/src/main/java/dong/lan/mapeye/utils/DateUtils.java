@@ -140,7 +140,7 @@ public class DateUtils {
             calendar.setTime(messageDate);
             int hour = calendar.get(Calendar.HOUR_OF_DAY);
 
-            format = "YY-MM-dd HH:mm";
+            format = "yy-MM-dd HH:mm";
 
             if (hour > 17) {
                 if (isChinese) {

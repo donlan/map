@@ -20,6 +20,8 @@
 
 package dong.lan.mapeye.model.conversation;
 
+import android.util.Log;
+
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
@@ -47,6 +49,7 @@ import dong.lan.mapeye.model.message.JGMessage;
 public class JConversation implements IConversation {
 
 
+    private static final String TAG = JConversation.class.getSimpleName();
     private Conversation conversation;
 
     public JConversation(Conversation conversation) {
@@ -129,6 +132,7 @@ public class JConversation implements IConversation {
     @Override
     public List<IMessage> loadMessage(int offset) {
         int PAGE_SIZE = 20;
+        Log.d(TAG, "loadMessage: "+conversation);
         List<Message> messageList = conversation.getMessagesFromNewest(offset, PAGE_SIZE);
         Collections.sort(messageList, new Comparator<Message>() {
             @Override

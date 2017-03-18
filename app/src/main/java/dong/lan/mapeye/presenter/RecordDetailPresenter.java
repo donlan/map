@@ -32,12 +32,6 @@ import com.baidu.mapapi.map.BitmapDescriptorFactory;
 import com.baidu.mapapi.map.Marker;
 import com.baidu.mapapi.model.LatLng;
 import com.orhanobut.logger.Logger;
-import com.tencent.TIMCallBack;
-import com.tencent.TIMGroupManager;
-import com.tencent.TIMGroupMemberInfo;
-import com.tencent.TIMGroupMemberResult;
-import com.tencent.TIMValueCallBack;
-import com.tencent.qcloud.tlslibrary.helper.JMHelper;
 
 import org.greenrobot.eventbus.EventBus;
 
@@ -47,7 +41,10 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Stack;
 
+import cn.jpush.im.android.api.JMessageClient;
+import cn.jpush.im.android.api.callback.GetGroupMembersCallback;
 import cn.jpush.im.android.api.model.Message;
+import cn.jpush.im.android.api.model.UserInfo;
 import cn.jpush.im.api.BasicCallback;
 import dong.lan.mapeye.R;
 import dong.lan.mapeye.common.Config;
@@ -57,17 +54,11 @@ import dong.lan.mapeye.common.UserManager;
 import dong.lan.mapeye.contracts.RecordDetailContract;
 import dong.lan.mapeye.events.MainEvent;
 import dong.lan.mapeye.model.users.Contact;
-import dong.lan.mapeye.model.users.Contacts;
 import dong.lan.mapeye.model.users.Group;
 import dong.lan.mapeye.model.message.CMDMessage;
-import dong.lan.mapeye.model.MonitorRecode;
 import dong.lan.mapeye.model.Point;
 import dong.lan.mapeye.model.Record;
-import dong.lan.mapeye.model.RecordDetailModel;
 import dong.lan.mapeye.model.TraceLocation;
-import dong.lan.mapeye.model.users.User;
-import dong.lan.mapeye.task.ClientInfoRequireTask;
-import dong.lan.mapeye.task.MonitorStatusTask;
 import dong.lan.mapeye.utils.MapUtils;
 import dong.lan.mapeye.utils.TransitionUtil;
 import dong.lan.mapeye.views.MonitorTimerTaskActivity;
@@ -145,16 +136,12 @@ public class RecordDetailPresenter implements RecordDetailContract.Presenter {
                             final String id = record.getId();
                             group = realm.where(Group.class).equalTo("groupId", id).findFirst();
                             if (group == null || group.getMembers().isEmpty()) {
-                                TIMGroupManager.getInstance().getGroupMembers(id, new TIMValueCallBack<List<TIMGroupMemberInfo>>() {
-                                    @Override
-                                    public void onError(int i, String s) {
-                                        view.toast(s);
-                                    }
 
+                                JMessageClient.getGroupMembers(Long.parseLong(id), new GetGroupMembersCallback() {
                                     @Override
-                                    public void onSuccess(List<TIMGroupMemberInfo> timGroupMemberInfos) {
+                                    public void gotResult(int i, String s, List<UserInfo> list) {
                                         group = UserManager.instance().
-                                                initGroupInfo(timGroupMemberInfos, id, record.getLabel(), realm);
+                                                initGroupInfo(list, id, record.getLabel(), realm);
                                         initAdapter(group);
                                     }
                                 });
@@ -183,29 +170,27 @@ public class RecordDetailPresenter implements RecordDetailContract.Presenter {
     public void deleteRecord() {
         if (record != null) {
             try {
-
-                TIMGroupManager.getInstance().deleteGroup(record.getId(), new TIMCallBack() {
+                JMessageClient.exitGroup(Long.parseLong(record.getId()), new BasicCallback() {
                     @Override
-                    public void onError(int i, String s) {
-                        view.toast(s);
-                    }
-
-                    @Override
-                    public void onSuccess() {
-                        Realm realm = Realm.getDefaultInstance();
-                        realm.beginTransaction();
-                        record.deleteFromRealm();
-                        RealmList<Contact> contacts = group.getMembers();
-                        for (Contact c :
-                                contacts) {
-                            c.deleteFromRealm();
+                    public void gotResult(int i, String s) {
+                        if(i == 0){
+                            Realm realm = Realm.getDefaultInstance();
+                            realm.beginTransaction();
+                            record.deleteFromRealm();
+                            RealmList<Contact> contacts = group.getMembers();
+                            for (Contact c :
+                                    contacts) {
+                                c.deleteFromRealm();
+                            }
+                            contacts.clear();
+                            group.deleteFromRealm();
+                            realm.commitTransaction();
+                            view.show("删除成功");
+                            EventBus.getDefault().post(new MainEvent(MainEvent.CODE_DELETE_RECORD, position));
+                            view.finish();
+                        }else{
+                            view.toast(s);
                         }
-                        contacts.clear();
-                        group.deleteFromRealm();
-                        realm.commitTransaction();
-                        view.show("删除成功");
-                        EventBus.getDefault().post(new MainEvent(MainEvent.CODE_DELETE_RECORD, position));
-                        view.finish();
                     }
                 });
             } catch (Exception e) {
@@ -285,21 +270,6 @@ public class RecordDetailPresenter implements RecordDetailContract.Presenter {
     public void startMonitor(int position) {
         final Contact contact = getContact(position);
         MonitorManager.instance().sendStartMonitorMsg(contact, record, realm);
-
-//        TIMMessage message = MessageCreator.createNormalCmdMessage(
-//                CMDMessage.CMD_MONITOR_START, "开始监听",
-//                MessageHelper.createRecordContactExtras(record.getId(), contact.getUser().getIdentifier()));
-//        MessageHelper.sendTIMMessage(user.getIdentifier(), message, new TIMValueCallBack<TIMMessage>() {
-//            @Override
-//            public void onError(int i, String s) {
-//                view.toast("发送定位指令失败：" + i + " : " + s);
-//            }
-//
-//            @Override
-//            public void onSuccess(TIMMessage message) {
-//                Logger.d(message);
-//            }
-//        });
     }
 
     @Override
@@ -307,20 +277,6 @@ public class RecordDetailPresenter implements RecordDetailContract.Presenter {
         final Contact contact = getContact(position);
         MonitorManager.instance().sendStopMonitorMsg(contact, record.getId(), realm);
 
-//        TIMMessage message = MessageCreator.createNormalCmdMessage(
-//                CMDMessage.CMD_MONITOR_STOP, "停止监听",
-//                MessageHelper.createRecordContactExtras(record.getId(), contact.getUser().getIdentifier()));
-//        MessageHelper.sendTIMMessage(user.getIdentifier(), message, new TIMValueCallBack<TIMMessage>() {
-//            @Override
-//            public void onError(int i, String s) {
-//                view.toast("发送定位结束指令失败：" + i + " : " + s);
-//            }
-//
-//            @Override
-//            public void onSuccess(TIMMessage message) {
-//
-//            }
-//        });
     }
 
     @Override
@@ -332,25 +288,21 @@ public class RecordDetailPresenter implements RecordDetailContract.Presenter {
             view.show("请先停止当前用户的位置监听");
             return;
         }
-        TIMGroupManager.getInstance().deleteGroupMemberWithReason(group.getGroupId(),
-                "监控者主动移除绑定关系",
-                Collections.singletonList(contact.getUser().getIdentifier()),
-                new TIMValueCallBack<List<TIMGroupMemberResult>>() {
-                    @Override
-                    public void onError(int i, String s) {
-                        view.toast(s);
-                    }
-
-                    @Override
-                    public void onSuccess(List<TIMGroupMemberResult> timGroupMemberResults) {
-                        realm.beginTransaction();
-                        List<Contact> contacts = group.getMembers();
-                        contacts.remove(contact);
-                        contact.deleteFromRealm();
-                        realm.commitTransaction();
+        JMessageClient.removeGroupMembers(Long.parseLong(record.getId()), Collections.singletonList(contact.getUser().identifier()), new BasicCallback() {
+            @Override
+            public void gotResult(int i, String s) {
+                if(i == 0){
+                    realm.beginTransaction();
+                    List<Contact> contacts = group.getMembers();
+                    contacts.remove(contact);
+                    contact.deleteFromRealm();
+                    realm.commitTransaction();
 //                        view.refreshList();
-                    }
-                });
+                }else{
+                    view.toast(s);
+                }
+            }
+        });
 
     }
 
@@ -367,6 +319,7 @@ public class RecordDetailPresenter implements RecordDetailContract.Presenter {
             BitmapDescriptor icon = BitmapDescriptorFactory.fromView(
                     new PinView(view, 0, Color.YELLOW, traceLocation.getDisplayName()));
             Marker marker = MapUtils.drawMarker(view.getMap(), point, icon);
+            marker.setTitle(id);
             markersMap.put(id, marker);
         }
     }
@@ -403,7 +356,7 @@ public class RecordDetailPresenter implements RecordDetailContract.Presenter {
         if (contact == null)
             return;
         if (contact.getStatus() != Contact.STATUS_MONITORING) {
-            view.toast(contact.getUser().getUsername() + " : 没有开始监听");
+            view.toast(contact.getUser().username() + " : 没有开始监听");
             return;
         }
         final Dialog dialog = new Dialog(view).setupView(R.layout.dialog_location_speed);
@@ -417,7 +370,7 @@ public class RecordDetailPresenter implements RecordDetailContract.Presenter {
                         view.toast("时间间隔不符合要求");
                     } else {
                         Message m = new JMCenter.JMessage(CMDMessage.CMD_SET_LOCATION_SPEED,
-                                JMHelper.getJUsername(contact.getUser().getIdentifier()),
+                                contact.getUser().identifier(),
                                 "定位频率调整为： " + time + " 秒 1 次")
                                 .appendNumberExtra(JMCenter.EXTRAS_LOCATION_SPEED, time)
                                 .build();
@@ -462,18 +415,26 @@ public class RecordDetailPresenter implements RecordDetailContract.Presenter {
     @Override
     public void sendClientInfoReq(int position) {
         final Contact contact = getContact(position);
-        Intent intent = new Intent(view, ClientInfoRequireTask.class);
-        intent.putExtra(Config.KEY_IDENTIFIER, contact.getUser().getIdentifier());
-        intent.putExtra(Config.KEY_RECORD_ID, record.getId());
-        view.startService(intent);
-        view.toast("信息索取消息已发送");
+
+        JMCenter.sendClientInfoMessage(contact.getUser().identifier(),
+                record.getId(), new BasicCallback() {
+            @Override
+            public void gotResult(int i, String s) {
+                Logger.d(i+","+s);
+                if (i == 0) {
+                    view.toast("发送请求成功，请等待数据回传");
+                }else{
+                    view.toast(i+","+s);
+                }
+            }
+        });
     }
 
     @Override
     public void toMonitorTimerTask(int position) {
         final Contact contact = getContact(position);
         Intent intent = new Intent(view, MonitorTimerTaskActivity.class);
-        intent.putExtra(Config.KEY_IDENTIFIER, contact.getUser().getIdentifier());
+        intent.putExtra(Config.KEY_IDENTIFIER, contact.getUser().identifier());
         intent.putExtra(Config.KEY_RECORD_ID, record.getId());
         view.startActivity(intent);
     }

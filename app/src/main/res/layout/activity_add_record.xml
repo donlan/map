@@ -20,7 +20,7 @@
         android:gravity="center"
         android:orientation="horizontal">
 
-        <dong.lan.mapeye.views.customsView.LabelTextView
+        <dong.lan.library.LabelTextView
             android:id="@+id/build_fence"
             style="@style/addRecordButton"
             android:text="围栏"
@@ -29,7 +29,7 @@
             app:clickAnimation="true"
             app:radius="@dimen/addRecordBtnRadiusSize" />
 
-        <dong.lan.mapeye.views.customsView.LabelTextView
+        <dong.lan.library.LabelTextView
             android:id="@+id/build_route"
             style="@style/addRecordButton"
             android:layout_marginLeft="16dp"
@@ -40,7 +40,7 @@
             app:radius="@dimen/addRecordBtnRadiusSize" />
 
 
-        <dong.lan.mapeye.views.customsView.LabelTextView
+        <dong.lan.library.LabelTextView
             android:id="@+id/build_circle"
             style="@style/addRecordButton"
             android:layout_marginLeft="16dp"
@@ -50,7 +50,7 @@
             app:clickAnimation="true"
             app:radius="@dimen/addRecordBtnRadiusSize" />
 
-        <dong.lan.mapeye.views.customsView.LabelTextView
+        <dong.lan.library.LabelTextView
             android:id="@+id/reset_record"
             style="@style/addRecordButton"
             android:text="重置"

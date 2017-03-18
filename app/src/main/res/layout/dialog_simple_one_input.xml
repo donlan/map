@@ -42,7 +42,7 @@
         android:paddingLeft="8dp"
         android:paddingRight="8dp" />
 
-    <dong.lan.mapeye.views.customsView.LabelTextView
+    <dong.lan.library.LabelTextView
         android:id="@+id/simpleDialogDone"
         android:layout_width="match_parent"
         android:layout_height="50dp"

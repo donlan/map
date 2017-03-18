@@ -30,26 +30,26 @@ import android.os.Environment;
 import android.provider.MediaStore;
 import android.support.v7.app.AlertDialog;
 
-import com.orhanobut.logger.Logger;
-import com.tencent.TIMCallBack;
-import com.tencent.TIMFriendshipManager;
-import com.tencent.TIMUserProfile;
-import com.tencent.TIMValueCallBack;
-import com.tencent.qcloud.tlslibrary.helper.JMHelper;
 
 import java.io.File;
 import java.text.SimpleDateFormat;
-import java.util.Collections;
 import java.util.Date;
-import java.util.List;
 import java.util.Locale;
 
+import cn.jpush.im.android.api.JMessageClient;
+import cn.jpush.im.android.api.callback.GetUserInfoCallback;
+import cn.jpush.im.android.api.model.UserInfo;
+import cn.jpush.im.api.BasicCallback;
 import dong.lan.mapeye.common.Config;
 import dong.lan.mapeye.common.UserManager;
 import dong.lan.mapeye.contracts.UserCenterContract;
+import dong.lan.mapeye.model.users.Contact;
+import dong.lan.mapeye.model.users.IUserInfo;
+import dong.lan.mapeye.model.users.User;
 import dong.lan.mapeye.utils.PhotoUtil;
 import dong.lan.mapeye.views.ChatActivity;
 import dong.lan.mapeye.views.UserCenterActivity;
+import io.realm.Realm;
 
 
 /**
@@ -64,8 +64,8 @@ public class UserCenterPresenter implements UserCenterContract.Presenter {
     private UserCenterActivity view;
     private String avatarPath;
     private boolean isUserSelf;
-    private TIMUserProfile userInfo;
-
+    private IUserInfo userInfo;
+    private UserInfo myUserInfo;
     public UserCenterPresenter(UserCenterActivity view) {
         this.view = view;
     }
@@ -82,7 +82,7 @@ public class UserCenterPresenter implements UserCenterContract.Presenter {
                             dir.mkdirs();
                         }
                         // 原图
-                        File file = new File(dir, userInfo.getIdentifier() + "_head_" +
+                        File file = new File(dir, userInfo.identifier() + "_head_" +
                                 new SimpleDateFormat("head_yyyyMMdd_HHmm", Locale.CHINA).format(new Date()));
                         avatarPath = file.getAbsolutePath();// 获取相片的保存路径
                         Uri imageUri = Uri.fromFile(file);
@@ -136,8 +136,17 @@ public class UserCenterPresenter implements UserCenterContract.Presenter {
             if (bitmap != null) {
                 view.refreshAvatar(bitmap);
                 File headFile = PhotoUtil.saveBitmapAndReturn(
-                        Config.PICTURE_PATH, userInfo.getIdentifier() + "head.jpg", bitmap, true);
-
+                        Config.PICTURE_PATH, userInfo.identifier() + "head.jpg", bitmap, true);
+                JMessageClient.updateUserAvatar(headFile, new BasicCallback() {
+                    @Override
+                    public void gotResult(int i, String s) {
+                        if(i ==0 ){
+                            view.toast("头像上传成功");
+                        }else{
+                            view.toast(s);
+                        }
+                    }
+                });
             }
         }
     }
@@ -179,40 +188,50 @@ public class UserCenterPresenter implements UserCenterContract.Presenter {
     }
 
     @Override
-    public void saveUserMarkerName(String name) {
+    public void saveUserMarkerName(final String name) {
         if (name == null || name.equals("")) {
             view.toast("名字不能为空");
             return;
         }
         if (isUserSelf) {
-            if (name.equals(userInfo.getNickName()))
+            if (name.equals(userInfo.nickname()))
                 return;
-            TIMFriendshipManager.getInstance().setNickName(name, new TIMCallBack() {
+            JMessageClient.updateMyInfo(UserInfo.Field.nickname, myUserInfo, new BasicCallback() {
                 @Override
-                public void onError(int i, String s) {
-                    view.toast(s);
-                }
-
-                @Override
-                public void onSuccess() {
-                    view.toast("昵称设置成功");
+                public void gotResult(int i, String s) {
+                    if(i == 0){
+                        view.toast("昵称设置成功");
+                    }else{
+                        view.toast(s);
+                    }
                 }
             });
         } else {
-            if (name.equals(userInfo.getRemark()))
+            if (name.equals(userInfo.remark()))
                 return;
-            TIMFriendshipManager.getInstance().setFriendRemark(userInfo.getIdentifier(), name,
-                    new TIMCallBack() {
-                        @Override
-                        public void onError(int i, String s) {
+            if(myUserInfo !=null){
+                myUserInfo.setNotename(name);
+                myUserInfo.updateNoteName(name, new BasicCallback() {
+                    @Override
+                    public void gotResult(int i, String s) {
+                        if(i == 0){
+                            view.toast("更新备注成功");
+                        }else{
                             view.toast(s);
                         }
-
-                        @Override
-                        public void onSuccess() {
-                            view.toast("设置备注成功");
-                        }
-                    });
+                    }
+                });
+                Realm realm = Realm.getDefaultInstance();
+                realm.executeTransactionAsync(new Realm.Transaction() {
+                    @Override
+                    public void execute(Realm realm) {
+                        User user = realm.where(User.class).equalTo("identifier",myUserInfo.getUserName())
+                                .findFirst();
+                        if(user != null)
+                            user.setRemark(name);
+                    }
+                });
+            }
         }
     }
 
@@ -222,17 +241,8 @@ public class UserCenterPresenter implements UserCenterContract.Presenter {
             view.toast("手机号码不正确");
             return;
         }
-        TIMFriendshipManager.getInstance().setCustomInfo("phoneNumber", phoneNumber.getBytes(),
-                new TIMCallBack() {
-                    @Override
-                    public void onError(int i, String s) {
-                        view.toast(s);
-                    }
 
-                    @Override
-                    public void onSuccess() {
-                    }
-                });
+
     }
 
 
@@ -243,17 +253,16 @@ public class UserCenterPresenter implements UserCenterContract.Presenter {
 
         final String username = isUserSelf ? UserManager.instance().myIdentifier() :
                 view.getIntent().getStringExtra(UserCenterContract.View.KEY_USERNAME);
-        TIMFriendshipManager.getInstance().getFriendsProfile(Collections.singletonList(username), new TIMValueCallBack<List<TIMUserProfile>>() {
-            @Override
-            public void onError(int i, String s) {
-                view.toast(s);
-            }
 
+        JMessageClient.getUserInfo(username, new GetUserInfoCallback() {
             @Override
-            public void onSuccess(List<TIMUserProfile> timUserProfiles) {
-                if (timUserProfiles != null && timUserProfiles.size() > 0) {
-                    userInfo = timUserProfiles.get(0);
-                    view.initView(timUserProfiles.get(0), isUserSelf);
+            public void gotResult(int i, String s, UserInfo userInfo) {
+                if(i ==0 && userInfo!=null){
+                    UserCenterPresenter.this.userInfo = new User(userInfo);
+                    myUserInfo = userInfo;
+                    view.initView(UserCenterPresenter.this.userInfo,isUserSelf);
+                }else{
+                    view.toast("获取用户信息失败:"+s);
                 }
             }
         });
@@ -264,8 +273,8 @@ public class UserCenterPresenter implements UserCenterContract.Presenter {
     public void toChatActivity() {
         Intent intent = new Intent(view, ChatActivity.class);
         intent.putExtra(ChatActivity.CHAT_TYPE, 0);
-        intent.putExtra(ChatActivity.CHAT_TITTLE,userInfo.getIdentifier());
-        intent.putExtra(ChatActivity.CHAT_PEER, JMHelper.getJUsername(userInfo.getIdentifier()));
+        intent.putExtra(ChatActivity.CHAT_TITTLE,userInfo.identifier());
+        intent.putExtra(ChatActivity.CHAT_PEER, userInfo.identifier());
         view.startActivity(intent);
     }
 

@@ -2,7 +2,9 @@ package dong.lan.mapeye.presenter;
 
 import android.util.Log;
 
-import com.tencent.qcloud.tlslibrary.helper.Secure;
+import com.mob.commons.SMSSDK;
+
+import dong.lan.mapeye.common.SMSServer;
 import dong.lan.mapeye.contracts.LoginAndSignContract;
 import dong.lan.mapeye.views.LoginAndSignActivity;
 
@@ -18,8 +20,10 @@ public class LoginRegisterPresenter implements LoginAndSignContract.Presenter {
     private static final String TAG = "LoginRegisterPresenter";
     private LoginAndSignActivity view;
 
+
     public LoginRegisterPresenter(LoginAndSignActivity view) {
         this.view = view;
+
     }
 
     @Override
@@ -34,13 +38,11 @@ public class LoginRegisterPresenter implements LoginAndSignContract.Presenter {
 
     @Override
     public void register(final String username, final String password) {
-        Log.d(TAG, "register: "+Secure.encode(password));
 
     }
 
     @Override
     public void login(String username, String password) {
-        Log.d(TAG, "login: "+Secure.encode(password));
 
     }
 }

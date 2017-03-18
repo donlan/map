@@ -1,1 +1,1 @@
-include ':app', ':sdk', ':tlslibrary', ':ui', ':presentation'
+include ':app', ':sdk',  ':RTPermission'

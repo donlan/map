@@ -25,7 +25,7 @@
     android:background="@color/md_white_1000"
     android:padding="12dp">
 
-    <dong.lan.mapeye.views.customsView.LabelTextView
+    <dong.lan.library.LabelTextView
         android:id="@+id/item_affair_type"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
@@ -83,7 +83,7 @@
         android:gravity="end"
         android:textSize="14sp" />
 
-    <dong.lan.mapeye.views.customsView.LabelTextView
+    <dong.lan.library.LabelTextView
         android:id="@+id/item_affair_status"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"

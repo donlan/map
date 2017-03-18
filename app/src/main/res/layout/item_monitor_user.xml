@@ -37,7 +37,39 @@
         android:layout_marginRight="16dp"
         android:src="@drawable/boy" />
 
+
+    <dong.lan.library.LabelTextView
+        android:layout_toRightOf="@id/itemMonitorUserHead"
+        android:id="@+id/itemMonitorStatus"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:paddingBottom="2dp"
+        android:paddingLeft="8dp"
+        android:paddingRight="8dp"
+        android:paddingTop="2dp"
+        android:text="监控中"
+        android:textColor="@color/md_white_1000"
+        android:textSize="14sp"
+        app:radius="20dp" />
+
+    <dong.lan.library.LabelTextView
+        android:id="@+id/itemMonitorTag"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_toRightOf="@id/itemMonitorStatus"
+        android:paddingBottom="2dp"
+        android:paddingLeft="8dp"
+        android:paddingRight="8dp"
+        android:paddingTop="2dp"
+        android:layout_marginRight="16dp"
+        android:layout_marginLeft="16dp"
+        android:text="待认证"
+        android:textColor="@color/md_white_1000"
+        android:textSize="14sp"
+        app:bg_color="@color/colorAccent"
+        app:radius="20dp" />
     <TextView
+        android:layout_below="@id/itemMonitorStatus"
         android:id="@+id/itemMonitorName"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
@@ -58,51 +90,19 @@
         android:textColor="@color/md_grey_700"
         android:textSize="18sp" />
 
-    <dong.lan.mapeye.views.customsView.LabelTextView
-        android:id="@+id/itemMonitorStatus"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_alignParentRight="true"
-        android:layout_marginLeft="8dp"
-        android:layout_marginRight="8dp"
-        android:paddingBottom="2dp"
-        android:paddingLeft="8dp"
-        android:paddingRight="8dp"
-        android:paddingTop="2dp"
-        android:text="监控中"
-        android:textColor="@color/md_white_1000"
-        android:textSize="14sp"
-        app:radius="6dp" />
-
-    <dong.lan.mapeye.views.customsView.LabelTextView
-        android:id="@+id/itemMonitorTag"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_toLeftOf="@id/itemMonitorStatus"
-        android:paddingBottom="2dp"
-        android:paddingLeft="8dp"
-        android:paddingRight="8dp"
-        android:paddingTop="2dp"
-        android:text="待认证"
-        android:textColor="@color/md_white_1000"
-        android:textSize="14sp"
-        app:bg_color="@color/colorAccent"
-        app:radius="6dp" />
 
     <View
-        android:layout_marginLeft="8dp"
-        android:layout_marginRight="8dp"
         android:layout_width="match_parent"
         android:layout_height="1px"
         android:layout_below="@id/itemMonitorInfo"
         android:layout_marginTop="8dp"
-        android:background="@color/md_grey_500" />
+        android:background="@color/md_grey_300" />
 
     <dong.lan.mapeye.views.customsView.ToggleCheckBox
         android:layout_marginLeft="10dp"
         android:layout_marginRight="10dp"
         android:layout_below="@id/itemMonitorInfo"
-        android:layout_marginTop="8dp"
+        android:layout_marginTop="4dp"
         android:layout_alignParentRight="true"
         android:id="@+id/toggleSwitcher"
         android:layout_width="wrap_content"
@@ -116,7 +116,7 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_below="@id/itemMonitorInfo"
-        android:layout_marginTop="16dp"
+        android:layout_marginTop="20dp"
         android:orientation="horizontal">
 
         <ImageButton
