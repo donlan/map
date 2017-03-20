@@ -71,4 +71,91 @@ public class BRecord extends BmobObject {
             }
         }
     }
+
+    public String getId() {
+        return id;
+    }
+
+    public void setId(String id) {
+        this.id = id;
+    }
+
+    public BUser getOwn() {
+        return own;
+    }
+
+    public void setOwn(BUser own) {
+        this.own = own;
+    }
+
+    public Long getCreateTime() {
+        return createTime;
+    }
+
+    public void setCreateTime(Long createTime) {
+        this.createTime = createTime;
+    }
+
+    public String getLabel() {
+        return label;
+    }
+
+    public void setLabel(String label) {
+        this.label = label;
+    }
+
+    public String getInfo() {
+        return info;
+    }
+
+    public void setInfo(String info) {
+        this.info = info;
+    }
+
+    public Integer getType() {
+        return type;
+    }
+
+    public void setType(Integer type) {
+        this.type = type;
+    }
+
+    public Integer getRadius() {
+        return radius;
+    }
+
+    public void setRadius(Integer radius) {
+        this.radius = radius;
+    }
+
+    public List<BPoint> getPoints() {
+        return points;
+    }
+
+    public void setPoints(List<BPoint> points) {
+        this.points = points;
+    }
+
+    public List<BContact> getContacts() {
+        return contacts;
+    }
+
+    public void setContacts(List<BContact> contacts) {
+        this.contacts = contacts;
+    }
+
+    @Override
+    public String toString() {
+        return "BRecord{" +
+                "id='" + id + '\'' +
+                ", own=" + own +
+                ", createTime=" + createTime +
+                ", label='" + label + '\'' +
+                ", info='" + info + '\'' +
+                ", type=" + type +
+                ", radius=" + radius +
+                ", points=" + points +
+                ", contacts=" + contacts +
+                '}';
+    }
 }

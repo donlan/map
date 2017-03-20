@@ -39,7 +39,7 @@ public class TraceLocation extends RealmObject {
     private long createTime;
 
     @Ignore
-    private long monitorId;
+    private String monitorId;
     @Ignore
     private String displayName;
 
@@ -53,11 +53,11 @@ public class TraceLocation extends RealmObject {
         this.displayName = displayName;
     }
 
-    public long getMonitorId() {
+    public String getMonitorId() {
         return monitorId;
     }
 
-    public void setMonitorId(long monitorId) {
+    public void setMonitorId(String monitorId) {
         this.monitorId = monitorId;
     }
 

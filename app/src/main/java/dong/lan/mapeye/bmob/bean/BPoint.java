@@ -49,4 +49,11 @@ public class BPoint extends BmobObject {
     }
 
 
+    @Override
+    public String toString() {
+        return "BPoint{" +
+                "lat=" + lat +
+                ", lng=" + lng +
+                '}';
+    }
 }

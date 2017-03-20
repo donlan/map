@@ -22,6 +22,7 @@ package dong.lan.mapeye.bmob.bean;
 
 import cn.bmob.v3.BmobObject;
 import dong.lan.mapeye.model.users.Contact;
+import dong.lan.mapeye.model.users.User;
 
 /**
  * Created by 梁桂栋 on 17-3-18 ： 下午7:43.
@@ -32,7 +33,7 @@ import dong.lan.mapeye.model.users.Contact;
 
 public class BContact extends BmobObject {
 
-    private Long id;                    //对应域UserInfo.getUserId()
+    private String id;                    //对应域UserInfo.getUserId()
     private Long startMonitorTime;      //定时监听位置变化的开始时间
     private Long endMonitorTime;        //定时监听位置变化的结束时间
     private Boolean isRepeatMonitor;    //是否重复监听（单次定时监听还是重复监听）
@@ -54,11 +55,11 @@ public class BContact extends BmobObject {
         user = new BUser(contact.getUser());
     }
 
-    public Long getId() {
+    public String getId() {
         return id;
     }
 
-    public void setId(Long id) {
+    public void setId(String id) {
         this.id = id;
     }
 
@@ -108,5 +109,39 @@ public class BContact extends BmobObject {
 
     public void setUser(BUser user) {
         this.user = user;
+    }
+
+
+    public Contact toContact() {
+        User u = new User();
+        u.setRemark(user.getRemark());
+        u.setSex(user.getSex());
+        u.setHeadAvatar(user.getHeadAvatar());
+        u.setNickname(user.getNickname());
+        u.setIdentifier(user.getIdentifier());
+
+        Contact contact = new Contact();
+        contact.setId(id);
+        contact.setEndMonitorTime(endMonitorTime);
+        contact.setRepeatMonitor(isRepeatMonitor);
+        contact.setStatus(status);
+        contact.setTag(tag);
+        contact.setStartMonitorTime(startMonitorTime);
+        contact.setUser(u);
+
+        return contact;
+    }
+
+    @Override
+    public String toString() {
+        return "BContact{" +
+                "id='" + id + '\'' +
+                ", startMonitorTime=" + startMonitorTime +
+                ", endMonitorTime=" + endMonitorTime +
+                ", isRepeatMonitor=" + isRepeatMonitor +
+                ", status=" + status +
+                ", tag=" + tag +
+                ", user=" + user +
+                '}';
     }
 }

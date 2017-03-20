@@ -23,21 +23,18 @@ import com.orhanobut.logger.Logger;
 import org.greenrobot.eventbus.EventBus;
 
 import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Date;
 import java.util.List;
 
 import cn.jpush.im.android.api.JMessageClient;
 import cn.jpush.im.android.api.callback.CreateGroupCallback;
 import dong.lan.mapeye.R;
-import dong.lan.mapeye.bmob.Action;
 import dong.lan.mapeye.common.UserManager;
 import dong.lan.mapeye.contracts.AddRecordContract;
 import dong.lan.mapeye.events.MainEvent;
-import dong.lan.mapeye.model.users.Contact;
-import dong.lan.mapeye.model.users.Group;
 import dong.lan.mapeye.model.Point;
 import dong.lan.mapeye.model.Record;
+import dong.lan.mapeye.model.users.Contact;
+import dong.lan.mapeye.model.users.Group;
 import dong.lan.mapeye.model.users.User;
 import dong.lan.mapeye.utils.MapUtils;
 import dong.lan.mapeye.views.AddRecordActivity;
@@ -143,7 +140,7 @@ public class AddRecordPresenter implements AddRecordContract.Presenter {
                                         EventBus.getDefault().post(new MainEvent(MainEvent.CODE_ADDED_RECORD, r));
                                         view.toast("保存成功");
                                         dismissProgress();
-                                        //Action.saveRecord(record, group);
+                                        //BmobAction.saveRecord(record, group);
                                     } catch (Exception e) {
                                         e.printStackTrace();
                                         view.toast(e.getMessage());

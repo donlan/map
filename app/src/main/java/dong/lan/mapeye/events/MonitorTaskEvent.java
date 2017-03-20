@@ -31,21 +31,21 @@ public class MonitorTaskEvent {
 
     public static final int TYPE_UPDATE_STATE = 0;
 
-    private long contactId;
+    private String contactId;
     private String recordId;
     private int type;
 
-    public MonitorTaskEvent(long contactId, String recordId, int type) {
+    public MonitorTaskEvent(String contactId, String recordId, int type) {
         this.contactId = contactId;
         this.recordId = recordId;
         this.type = type;
     }
 
-    public long getContactId() {
+    public String getContactId() {
         return contactId;
     }
 
-    public void setContactId(long contactId) {
+    public void setContactId(String contactId) {
         this.contactId = contactId;
     }
 

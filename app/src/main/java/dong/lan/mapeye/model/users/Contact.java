@@ -21,11 +21,7 @@
 package dong.lan.mapeye.model.users;
 
 
-
-import java.util.Date;
-
 import io.realm.RealmObject;
-import io.realm.annotations.Ignore;
 
 /**
  * Created by 梁桂栋 on 16-11-15 ： 下午4:31.
@@ -47,7 +43,7 @@ public class Contact extends RealmObject {
     public static final int STATUS_NONE = 5;
 
 
-    private long id;                    //对应域UserInfo.getUserId()
+    private String id;                    //对应域UserInfo.getUserId()
     private long startMonitorTime;      //定时监听位置变化的开始时间
     private long endMonitorTime;        //定时监听位置变化的结束时间
     private boolean isRepeatMonitor;    //是否重复监听（单次定时监听还是重复监听）
@@ -55,15 +51,15 @@ public class Contact extends RealmObject {
     private int tag;                    //被监听用户的绑定标记
     private User user;                  //所对应的User用户
 
-    public static long createId(String groupId, String userId) {
-        return groupId.hashCode() ^ userId.hashCode();
+    public static String createId(String groupId, String userId) {
+        return groupId + "_" + userId;
     }
 
-    public long getId() {
+    public String getId() {
         return id;
     }
 
-    public void setId(long id) {
+    public void setId(String id) {
         this.id = id;
     }
 
@@ -115,20 +111,4 @@ public class Contact extends RealmObject {
         this.user = user;
     }
 
-
-    @Override
-    public boolean equals(Object obj) {
-        if (obj == this)
-            return true;
-        else if (obj instanceof Contact)
-            return id == ((Contact) obj).getId();
-        else if(obj instanceof Long)
-            return id == (Long) obj;
-        return false;
-    }
-
-    @Override
-    public int hashCode() {
-        return (int) id;
-    }
 }

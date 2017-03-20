@@ -2,7 +2,6 @@ package dong.lan.mapeye;
 
 import android.app.Application;
 import android.content.Context;
-import android.util.Log;
 
 import com.baidu.mapapi.SDKInitializer;
 import com.orhanobut.logger.Logger;
@@ -10,17 +9,15 @@ import com.orhanobut.logger.Logger;
 import java.util.List;
 import java.util.Locale;
 
+import cn.bmob.v3.Bmob;
 import cn.jpush.im.android.api.JMessageClient;
 import cn.jpush.im.android.api.event.ConversationRefreshEvent;
-import cn.jpush.im.android.api.event.LoginStateChangeEvent;
 import cn.jpush.im.android.api.event.MessageEvent;
 import cn.jpush.im.android.api.event.OfflineMessageEvent;
 import cn.jpush.im.android.api.model.Conversation;
 import cn.jpush.im.android.api.model.Message;
-import cn.jpush.im.android.api.model.UserInfo;
 import dong.lan.mapeye.common.JMCenter;
 import dong.lan.mapeye.common.MonitorManager;
-import dong.lan.mapeye.common.UserManager;
 import dong.lan.mapeye.utils.SPHelper;
 import io.realm.DynamicRealm;
 import io.realm.Realm;
@@ -50,6 +47,9 @@ public class App extends Application {
         context = this;
         SPHelper.init(this);
         Logger.init("MapEye");
+
+        Bmob.initialize(this, "03d2a14db425e979034b43b5d661af19");
+
         Realm.init(this);
         RealmConfiguration configuration = new RealmConfiguration.Builder()
                 .deleteRealmIfMigrationNeeded()

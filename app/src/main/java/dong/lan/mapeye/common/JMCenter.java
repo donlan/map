@@ -33,10 +33,10 @@ import cn.jpush.im.android.api.content.TextContent;
 import cn.jpush.im.android.api.model.Message;
 import cn.jpush.im.api.BasicCallback;
 import dong.lan.mapeye.model.ClientInfo;
-import dong.lan.mapeye.model.users.Contact;
 import dong.lan.mapeye.model.TraceLocation;
 import dong.lan.mapeye.model.message.CMDMessage;
 import dong.lan.mapeye.model.message.JGMessage;
+import dong.lan.mapeye.model.users.Contact;
 
 /**
  * Created by 梁桂栋 on 16-12-28 ： 下午12:43.
@@ -92,6 +92,57 @@ public class JMCenter {
 
     public static void declineInvite(String toUser, String reason, BasicCallback callback) {
         ContactManager.declineInvitation(toUser, Constant.JM_KEY, reason, callback);
+    }
+
+    public static Number getNumberExtras(String key, Message message) {
+        if (message == null)
+            return 0;
+        return message.getContent().getNumberExtra(key);
+    }
+
+    public static String getStringExtras(String key, Message message) {
+        if (message == null)
+            return "";
+        return message.getContent().getStringExtra(key);
+    }
+
+    public static void sendLocation(int cmd, String recordId, String identifier, String toUserId, BDLocation bdLocation) {
+        Logger.d(recordId + "," + identifier);
+        Message message = JMessageClient.createSingleLocationMessage(
+                toUserId,
+                Constant.JM_KEY,
+                bdLocation.getLatitude(),
+                bdLocation.getLongitude(),
+                (int) bdLocation.getRadius(),
+                bdLocation.getAddrStr());
+        float speed = bdLocation.getSpeed();
+        float direction = bdLocation.getDirection();
+        message.getContent().setStringExtra(EXTRAS_RECORD_ID, recordId);
+        message.getContent().setStringExtra(EXTRAS_IDENTIFIER, identifier);
+        message.getContent().setNumberExtra(EXTRAS_CMD, cmd);
+        message.getContent().setNumberExtra(EXTRAS_DIRECTION, direction);
+        message.getContent().setNumberExtra(EXTRAS_SPEED, speed);
+        JMessageClient.sendMessage(message);
+    }
+
+    public static void sendClientInfoMessage(String identifier, String recordId, BasicCallback callback) {
+        Message message = JMessageClient.createSingleTextMessage(identifier,
+                "获取手机信息");
+        message.getContent().setNumberExtra(EXTRAS_CMD, CMDMessage.CMD_CLIENT_INFO);
+        message.getContent().setStringExtra(EXTRAS_RECORD_ID, recordId);
+        message.getContent().setStringExtra(EXTRAS_IDENTIFIER, identifier);
+        if (callback != null)
+            message.setOnSendCompleteCallback(callback);
+        JMessageClient.sendMessage(message);
+    }
+
+    public static void replyMobileInfo(String recordId, String identifier, ClientInfo clientInfo) {
+        Message message = JMessageClient.createSingleTextMessage(identifier, clientInfo.toString());
+        message.getContent().setNumberExtra(EXTRAS_CMD, CMDMessage.CMD_CLIENT_INFO_REPLY);
+        message.getContent().setStringExtra(EXTRAS_IDENTIFIER, identifier);
+        message.getContent().setStringExtra(EXTRAS_RECORD_ID, recordId);
+        message.getContent().setStringExtra(EXTRAS_CLIENT_INFO, clientInfo.toJson());
+        JMessageClient.sendMessage(message);
     }
 
     public void dispatchMessage(Message msg) {
@@ -169,7 +220,7 @@ public class JMCenter {
                 MonitorManager.instance().stopMonitorLocation();
                 break;
             case CMDMessage.CMD_MONITORING:
-                long id = Contact.createId(getStringExtras(EXTRAS_RECORD_ID, msg), getStringExtras(EXTRAS_IDENTIFIER, msg));
+                String id = Contact.createId(getStringExtras(EXTRAS_RECORD_ID, msg), getStringExtras(EXTRAS_IDENTIFIER, msg));
                 UserManager.instance().updateContactStatus(id, Contact.STATUS_MONITORING);
                 break;
             case CMDMessage.CMD_SET_LOCATION_SPEED:
@@ -188,59 +239,6 @@ public class JMCenter {
                 }
                 break;
         }
-    }
-
-
-    public static Number getNumberExtras(String key, Message message) {
-        if (message == null)
-            return 0;
-        return message.getContent().getNumberExtra(key);
-    }
-
-
-    public static String getStringExtras(String key, Message message) {
-        if (message == null)
-            return "";
-        return message.getContent().getStringExtra(key);
-    }
-
-    public static void sendLocation(int cmd, String recordId, String identifier, String toUserId, BDLocation bdLocation) {
-        Logger.d(recordId + "," + identifier);
-        Message message = JMessageClient.createSingleLocationMessage(
-                toUserId,
-                Constant.JM_KEY,
-                bdLocation.getLatitude(),
-                bdLocation.getLongitude(),
-                (int) bdLocation.getRadius(),
-                bdLocation.getAddrStr());
-        float speed = bdLocation.getSpeed();
-        float direction = bdLocation.getDirection();
-        message.getContent().setStringExtra(EXTRAS_RECORD_ID, recordId);
-        message.getContent().setStringExtra(EXTRAS_IDENTIFIER, identifier);
-        message.getContent().setNumberExtra(EXTRAS_CMD, cmd);
-        message.getContent().setNumberExtra(EXTRAS_DIRECTION, direction);
-        message.getContent().setNumberExtra(EXTRAS_SPEED, speed);
-        JMessageClient.sendMessage(message);
-    }
-
-    public static void sendClientInfoMessage(String identifier, String recordId, BasicCallback callback) {
-        Message message = JMessageClient.createSingleTextMessage(identifier,
-                "获取手机信息");
-        message.getContent().setNumberExtra(EXTRAS_CMD, CMDMessage.CMD_CLIENT_INFO);
-        message.getContent().setStringExtra(EXTRAS_RECORD_ID, recordId);
-        message.getContent().setStringExtra(EXTRAS_IDENTIFIER, identifier);
-        if (callback != null)
-            message.setOnSendCompleteCallback(callback);
-        JMessageClient.sendMessage(message);
-    }
-
-    public static void replyMobileInfo(String recordId, String identifier, ClientInfo clientInfo) {
-        Message message = JMessageClient.createSingleTextMessage(identifier, clientInfo.toString());
-        message.getContent().setNumberExtra(EXTRAS_CMD, CMDMessage.CMD_CLIENT_INFO_REPLY);
-        message.getContent().setStringExtra(EXTRAS_IDENTIFIER, identifier);
-        message.getContent().setStringExtra(EXTRAS_RECORD_ID, recordId);
-        message.getContent().setStringExtra(EXTRAS_CLIENT_INFO, clientInfo.toJson());
-        JMessageClient.sendMessage(message);
     }
 
     public static class JMessage {

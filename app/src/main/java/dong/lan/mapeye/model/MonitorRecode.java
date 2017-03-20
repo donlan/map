@@ -41,8 +41,8 @@ public class MonitorRecode extends RealmObject {
     private RealmList<TraceLocation> locations;
 
 
-    public static long createId(long contactId, long time) {
-        return contactId ^ time;
+    public static long createId(String contactId, long time) {
+        return contactId.hashCode() ^ time;
     }
 
     public long getId() {

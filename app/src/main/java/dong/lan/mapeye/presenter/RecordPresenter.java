@@ -30,7 +30,7 @@ public class RecordPresenter implements RecordContract.Presenter {
     public void load() {
         model.loadAllRecord(new SingleSubscriber<List<Record>>() {
             @Override
-            public void onSuccess(List<dong.lan.mapeye.model.Record> value) {
+            public void onSuccess(List<Record> value) {
                 if (value == null || value.isEmpty()) {
                     view.setUpEmptyView();
                 } else {

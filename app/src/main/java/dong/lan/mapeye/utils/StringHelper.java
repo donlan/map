@@ -23,8 +23,8 @@ package dong.lan.mapeye.utils;
 import java.text.SimpleDateFormat;
 import java.util.Locale;
 
-import dong.lan.mapeye.model.users.Contact;
 import dong.lan.mapeye.model.Record;
+import dong.lan.mapeye.model.users.Contact;
 
 /**
  * Created by 梁桂栋 on 16-12-1 ： 下午3:29.
@@ -97,7 +97,7 @@ public final class StringHelper {
 
     public static String getRecordDesc(Record record){
         return "创建于:" +
-                DateUtils.format(record.getCreateTime(), "yyyy年M月d日 HH:mm") +
+                DateUtils.getTime(record.getCreateTime(), "yyyy年M月d日 HH:mm") +
                 " 共由 " +
                 record.getPoints().size() +
                 " 个节点构成";

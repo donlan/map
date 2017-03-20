@@ -1,7 +1,6 @@
 package dong.lan.mapeye.model;
 
 import java.io.Serializable;
-import java.util.Date;
 
 import dong.lan.mapeye.model.users.User;
 import io.realm.RealmList;
@@ -34,6 +33,16 @@ public class Record extends RealmObject implements Serializable {
     private RealmList<Point> points;    //包含的所有位置点
     private RealmList<User> users;      //目前无使用.....
 
+    public static String getRecordTypeStr(int type) {
+        if (type == TYPE_FENCE)
+            return "围栏";
+        else if (type == TYPE_ROUTE)
+            return "路径";
+        else if (type == TYPE_CIRCLE)
+            return "半径围栏";
+        else
+            return "未知";
+    }
 
     public String getId() {
         return id;
@@ -99,7 +108,6 @@ public class Record extends RealmObject implements Serializable {
         this.users = users;
     }
 
-
     public int getRadius() {
         return radius;
     }
@@ -120,17 +128,6 @@ public class Record extends RealmObject implements Serializable {
             return " 不在半径围栏 " + label + " 内";
         else
             return " 不在 " + label + " 指定的范围内";
-    }
-
-    public static String getRecordTypeStr(int type) {
-        if (type == TYPE_FENCE)
-            return "围栏";
-        else if (type == TYPE_ROUTE)
-            return "路径";
-        else if (type == TYPE_CIRCLE)
-            return "半径围栏";
-        else
-            return "未知";
     }
 
     @Override

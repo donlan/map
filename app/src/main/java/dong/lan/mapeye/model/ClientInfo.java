@@ -49,6 +49,22 @@ public class ClientInfo {
     private int chargeStatus;
     private int netStatus;
 
+    public static int getNetType(NetUtils.NetworkType networkType) {
+        if (networkType == null)
+            return NET_UNKNOWN;
+        if (networkType.equals(NetUtils.NetworkType.NETWORK_WIFI))
+            return NET_WIFI;
+        if (networkType.equals(NetUtils.NetworkType.NETWORK_4G))
+            return NET_4G;
+        if (networkType.equals(NetUtils.NetworkType.NETWORK_3G))
+            return NET_3G;
+        if (networkType.equals(NetUtils.NetworkType.NETWORK_2G))
+            return NET_2G;
+        if (networkType.equals(NetUtils.NetworkType.NETWORK_NO))
+            return NET_NO;
+        return NET_UNKNOWN;
+    }
+
     public float getBattery() {
         return battery;
     }
@@ -71,22 +87,6 @@ public class ClientInfo {
 
     public void setNetStatus(int netStatus) {
         this.netStatus = netStatus;
-    }
-
-    public static int getNetType(NetUtils.NetworkType networkType) {
-        if (networkType == null)
-            return NET_UNKNOWN;
-        if (networkType.equals(NetUtils.NetworkType.NETWORK_WIFI))
-            return NET_WIFI;
-        if (networkType.equals(NetUtils.NetworkType.NETWORK_4G))
-            return NET_4G;
-        if (networkType.equals(NetUtils.NetworkType.NETWORK_3G))
-            return NET_3G;
-        if (networkType.equals(NetUtils.NetworkType.NETWORK_2G))
-            return NET_2G;
-        if (networkType.equals(NetUtils.NetworkType.NETWORK_NO))
-            return NET_NO;
-        return NET_UNKNOWN;
     }
 
     public String netDisplay() {
@@ -115,11 +115,11 @@ public class ClientInfo {
 
     @Override
     public String toString() {
-        return "手机状态{\n" +
-                "电池：" + battery +
-                "\n 充当状态：" + chargeDisplay() +
+        return "手机状态 {\n" +
+                " 电池：" + battery / 1 +
+                "%\n 充当状态：" + chargeDisplay() +
                 "\n 网络状态：" + netDisplay() +
-                "\n}";
+                "\n }";
     }
 
     public String toJson() {

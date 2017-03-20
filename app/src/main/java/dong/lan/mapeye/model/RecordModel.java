@@ -1,9 +1,9 @@
 package dong.lan.mapeye.model;
 
-import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.Callable;
 
+import dong.lan.mapeye.bmob.BmobAction;
 import io.realm.Realm;
 import io.realm.RealmResults;
 import rx.Single;
@@ -27,11 +27,13 @@ public class RecordModel {
                 try {
                     Realm realm = Realm.getDefaultInstance();
                     realm.beginTransaction();
-                    RealmResults<Record> records = realm.where(dong.lan.mapeye.model.Record.class).findAll();
+                    RealmResults<Record> records = realm.where(Record.class).findAll();
                     realm.commitTransaction();
                     res = realm.copyFromRealm(records);
                     realm.close();
-                }catch (Exception e){
+                    if (res == null || res.isEmpty())
+                        loadAllFromServer();
+                } catch (Exception e) {
                     subscriber.onError(e);
                 }
                 return res;
@@ -40,6 +42,14 @@ public class RecordModel {
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribe(subscriber);
 
+    }
+
+
+    /**
+     * 本地没有数据时,尝试从服务器加载数据到本地
+     */
+    private void loadAllFromServer() {
+        BmobAction.getAllRecord();
     }
 
 }

@@ -21,7 +21,10 @@
 package dong.lan.mapeye.common;
 
 import android.annotation.TargetApi;
-import android.app.*;
+import android.app.AlarmManager;
+import android.app.Notification;
+import android.app.NotificationManager;
+import android.app.PendingIntent;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
@@ -29,7 +32,6 @@ import android.net.Uri;
 import android.os.BatteryManager;
 import android.os.Build;
 import android.widget.Toast;
-
 
 import com.baidu.location.BDLocation;
 import com.baidu.location.BDLocationListener;
@@ -46,14 +48,13 @@ import cn.jpush.im.api.BasicCallback;
 import dong.lan.mapeye.R;
 import dong.lan.mapeye.model.Affair;
 import dong.lan.mapeye.model.ClientInfo;
-import dong.lan.mapeye.model.MonitorTimer;
-import dong.lan.mapeye.model.users.Contact;
-import dong.lan.mapeye.model.message.BaseMessage;
-import dong.lan.mapeye.model.message.CMDMessage;
 import dong.lan.mapeye.model.MonitorRecode;
+import dong.lan.mapeye.model.MonitorTimer;
 import dong.lan.mapeye.model.Record;
 import dong.lan.mapeye.model.TraceLocation;
+import dong.lan.mapeye.model.message.CMDMessage;
 import dong.lan.mapeye.model.message.IMessage;
+import dong.lan.mapeye.model.users.Contact;
 import dong.lan.mapeye.model.users.User;
 import dong.lan.mapeye.task.MonitorStatusTask;
 import dong.lan.mapeye.task.MonitorTimerTask;
@@ -80,10 +81,10 @@ import rx.subjects.SerializedSubject;
 public class MonitorManager {
     private static final String TAG = "MonitorManager";
     private static final long VALID_TIME_GAP = 1000 * 60 * 10;
-    private LocationService locationService;
     private static MonitorManager manager;
-    private HashMap<Long, Record> monitor;
-    private HashMap<Long, MonitorRecode> monitorRecodes;
+    private LocationService locationService;
+    private HashMap<String, Record> monitor;
+    private HashMap<String, MonitorRecode> monitorRecodes;
     private SerializedSubject<Object, Object> bus;
     private Context context;
     private Uri alertSound = null;
@@ -96,6 +97,12 @@ public class MonitorManager {
         monitorRecodes = new HashMap<>();
         //基于Rx的用于Message的二次订阅分发使用
         bus = new SerializedSubject<>(PublishSubject.create());
+    }
+
+    public static MonitorManager instance() {
+        if (manager == null)
+            manager = new MonitorManager();
+        return manager;
     }
 
     /**
@@ -115,19 +122,13 @@ public class MonitorManager {
         return context;
     }
 
-    public static MonitorManager instance() {
-        if (manager == null)
-            manager = new MonitorManager();
-        return manager;
-    }
-
     /**
      * 添加一个监听
      *
      * @param id     用户id  groupId ^ userId
      * @param record 监听的记录实体
      */
-    public void addMonitor(long id, Record record, MonitorRecode monitorRecode) {
+    public void addMonitor(String id, Record record, MonitorRecode monitorRecode) {
         monitor.put(id, record);
         monitorRecodes.put(id, monitorRecode);
     }
@@ -137,7 +138,7 @@ public class MonitorManager {
      *
      * @param id 用户id  groupId ^ userId
      */
-    public void removeMonitor(long id) {
+    public void removeMonitor(String id) {
         monitor.remove(id);
         MonitorRecode monitorRecode = monitorRecodes.remove(id);
         if (monitorRecode != null) {
@@ -159,7 +160,7 @@ public class MonitorManager {
      */
     @TargetApi(Build.VERSION_CODES.JELLY_BEAN)
     public void handlerMonitorLocation(String recordId, String identifier, TraceLocation location) {
-        long contactId = Contact.createId(recordId, identifier);
+        String contactId = Contact.createId(recordId, identifier);
         Record record = monitor.get(contactId);
         if (record == null)
             return;
@@ -563,7 +564,7 @@ public class MonitorManager {
         }
 
         User user = contact.getUser();
-        final long id = contact.getId();
+        final String id = contact.getId();
         toast("开始发送定位结束指令给 " + user.displayName());
         Message jmesage = new JMCenter.JMessage(CMDMessage.CMD_MONITOR_STOP,
                 user.username(), "开始监听")
@@ -616,7 +617,7 @@ public class MonitorManager {
             return;
         }
         User user = contact.getUser();
-        final long id = contact.getId();
+        final String id = contact.getId();
         final long mrId = MonitorRecode.createId(id, System.currentTimeMillis());
         toast("开始发送定位指令给 " + user.displayName());
 

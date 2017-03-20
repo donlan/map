@@ -98,4 +98,16 @@ public class BUser extends BmobObject {
     public void setRemark(String remark) {
         this.remark = remark;
     }
+
+    @Override
+    public String toString() {
+        return "BUser{" +
+                "identifier='" + identifier + '\'' +
+                ", username='" + username + '\'' +
+                ", sex=" + sex +
+                ", headAvatar='" + headAvatar + '\'' +
+                ", nickname='" + nickname + '\'' +
+                ", remark='" + remark + '\'' +
+                '}';
+    }
 }

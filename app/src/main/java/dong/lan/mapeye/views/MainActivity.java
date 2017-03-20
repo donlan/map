@@ -10,28 +10,19 @@ import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentPagerAdapter;
 import android.support.v4.view.ViewPager;
 import android.support.v7.widget.Toolbar;
-import android.util.Log;
-
 
 import com.orhanobut.logger.Logger;
-
-import java.util.List;
-import java.util.Locale;
 
 import butterknife.BindView;
 import butterknife.OnClick;
 import cn.jpush.im.android.api.JMessageClient;
 import cn.jpush.im.android.api.event.ContactNotifyEvent;
 import cn.jpush.im.android.api.event.LoginStateChangeEvent;
-import cn.jpush.im.android.api.event.OfflineMessageEvent;
-import cn.jpush.im.android.api.model.Conversation;
-import cn.jpush.im.android.api.model.Message;
 import cn.jpush.im.android.api.model.UserInfo;
 import dong.lan.mapeye.R;
 import dong.lan.mapeye.common.UserManager;
 import dong.lan.mapeye.model.Affair;
 import dong.lan.mapeye.model.users.Contact;
-import dong.lan.mapeye.model.users.User;
 import dong.lan.mapeye.utils.SPHelper;
 import dong.lan.mapeye.views.record.RecordFragment;
 import io.realm.Realm;
@@ -54,6 +45,7 @@ public class MainActivity extends BaseActivity {
     ViewPager viewPager;
     @BindView(R.id.toolbar)
     Toolbar toolbar;
+    Fragment[] tabs;
 
     @OnClick(R.id.bar_add)
     public void toAddRecordActivity() {
@@ -87,8 +79,6 @@ public class MainActivity extends BaseActivity {
     void toDownloadOfflineMap() {
         startActivity(new Intent(this, OfflineMapActivity.class));
     }
-
-    Fragment[] tabs;
 
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
