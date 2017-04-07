@@ -115,11 +115,10 @@ public class ClientInfo {
 
     @Override
     public String toString() {
-        return "手机状态 {\n" +
-                " 电池：" + battery / 1 +
+        return "手机状态 : " +
+                " 电池：" + battery +
                 "%\n 充当状态：" + chargeDisplay() +
-                "\n 网络状态：" + netDisplay() +
-                "\n }";
+                "\n 网络状态：" + netDisplay();
     }
 
     public String toJson() {
