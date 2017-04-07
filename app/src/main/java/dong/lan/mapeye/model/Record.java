@@ -5,6 +5,7 @@ import java.io.Serializable;
 import dong.lan.mapeye.model.users.User;
 import io.realm.RealmList;
 import io.realm.RealmObject;
+import io.realm.annotations.PrimaryKey;
 
 /**
  * Created by 梁桂栋 on 16-11-6 ： 下午3:59.
@@ -23,6 +24,7 @@ public class Record extends RealmObject implements Serializable {
     public static final int TYPE_CIRCLE = 2;
     public static final String GROUP_ID = "groupId";
 
+    @PrimaryKey
     private String id;                  //默认是创建时的时间的毫秒数
     private User own;                   //创建者
     private long createTime;            //创建时间
@@ -44,6 +46,10 @@ public class Record extends RealmObject implements Serializable {
             return "未知";
     }
 
+
+    public String recordTittleInfo() {
+        return "[" + getRecordTypeStr(type) + "]" + label;
+    }
     public String getId() {
         return id;
     }
