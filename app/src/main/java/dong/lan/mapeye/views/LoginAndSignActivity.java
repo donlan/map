@@ -1,46 +1,31 @@
 package dong.lan.mapeye.views;
 
 import android.Manifest;
-import android.animation.ObjectAnimator;
 import android.content.Intent;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
-import android.renderscript.ScriptGroup;
 import android.support.annotation.Nullable;
-import android.support.design.widget.TextInputEditText;
-import android.support.design.widget.TextInputLayout;
-import android.support.v7.widget.CardView;
 import android.text.TextUtils;
 import android.util.Log;
-import android.view.View;
-import android.view.ViewStub;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.TextView;
-
 
 import java.lang.ref.SoftReference;
 import java.util.ArrayList;
 import java.util.List;
 
 import butterknife.BindView;
-import butterknife.ButterKnife;
 import butterknife.OnClick;
-import butterknife.OnFocusChange;
 import cn.jpush.im.android.api.JMessageClient;
 import cn.jpush.im.api.BasicCallback;
-import cn.smssdk.SMSSDK;
 import dong.lan.mapeye.R;
 import dong.lan.mapeye.common.SMSServer;
 import dong.lan.mapeye.common.Secure;
 import dong.lan.mapeye.common.UserManager;
-import dong.lan.mapeye.contracts.LoginAndSignContract;
-import dong.lan.mapeye.presenter.LoginRegisterPresenter;
 import dong.lan.mapeye.utils.InputUtils;
-import dong.lan.mapeye.views.customsView.CircleTextView;
 import dong.lan.mapeye.views.customsView.EditTextWithClearButton;
-import dong.lan.mapeye.views.customsView.LoadingTextView;
 import dong.lan.permission.CallBack;
 import dong.lan.permission.Permission;
 
@@ -59,6 +44,40 @@ public class LoginAndSignActivity extends BaseActivity {
     EditTextWithClearButton phoneNumInput;
     @BindView(R.id.requireCheckCode)
     Button reqCheckCodeBtn;
+    @BindView(R.id.checkCode_login)
+    EditText checkCodeInput;
+    @BindView(R.id.btn_login)
+    Button loginBtn;
+    @BindView(R.id.btn_register)
+    Button registerBtn;
+    @BindView(R.id.tittle)
+    TextView tittleTv;
+    private SMSServer smsServer;
+    private boolean loginFlag = true;
+    private boolean isRegister = false;
+    private MyHandler handler;
+    private int timeCount = -1;
+    private BasicCallback basicCallback = new BasicCallback() {
+        @Override
+        public void gotResult(int i, String s) {
+            Log.d(TAG, "gotResult: " + i);
+            if (i == 0) {
+                if (loginFlag) {
+                    timeCount = -1;
+                    Intent intent = new Intent(LoginAndSignActivity.this, MainActivity.class);
+                    intent.putExtra("loginFlag", loginFlag);
+                    intent.putExtra("isRegister", isRegister);
+                    startActivity(intent);
+                    finish();
+                } else {
+                    loginFlag = true;
+                    handlerLoginAction(loginFlag);
+                }
+            } else {
+                toast(s);
+            }
+        }
+    };
 
     @OnClick(R.id.requireCheckCode)
     void requireSmsCode() {
@@ -80,34 +99,21 @@ public class LoginAndSignActivity extends BaseActivity {
         smsServer.getSMSCode("+86", phoneNumber);
     }
 
-    @BindView(R.id.checkCode_login)
-    EditText checkCodeInput;
-    @BindView(R.id.btn_login)
-    Button loginBtn;
-
     @OnClick(R.id.btn_login)
     void login() {
+        isRegister = false;
         loginFlag = true;
         tittleTv.setText("手机号登录");
         submitAction();
     }
 
-    @BindView(R.id.btn_register)
-    Button registerBtn;
-
     @OnClick(R.id.btn_register)
     void register() {
+        isRegister = true;
         loginFlag = false;
         tittleTv.setText("手机号注册");
         submitAction();
     }
-
-    @BindView(R.id.tittle)
-    TextView tittleTv;
-
-    private SMSServer smsServer;
-    private boolean loginFlag = true;
-    private MyHandler handler;
 
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
@@ -148,28 +154,6 @@ public class LoginAndSignActivity extends BaseActivity {
 
     }
 
-
-    private BasicCallback basicCallback = new BasicCallback() {
-        @Override
-        public void gotResult(int i, String s) {
-            Log.d(TAG, "gotResult: " + i);
-            if (i == 0) {
-                if (loginFlag) {
-                    timeCount = -1;
-                    Intent intent = new Intent(LoginAndSignActivity.this, MainActivity.class);
-                    intent.putExtra("loginFlag", loginFlag);
-                    startActivity(intent);
-                    finish();
-                } else {
-                    loginFlag = true;
-                    handlerLoginAction(loginFlag);
-                }
-            } else {
-                toast(s);
-            }
-        }
-    };
-
     private void handlerLoginAction(boolean loginFlag) {
         String phone = phoneNumInput.getText().toString();
         if (loginFlag) {
@@ -195,8 +179,6 @@ public class LoginAndSignActivity extends BaseActivity {
         smsServer.destroy();
         smsServer = null;
     }
-
-    private int timeCount = -1;
 
     private static class MyHandler extends Handler {
         SoftReference<Button> reqCheckCodeBtnSR;
