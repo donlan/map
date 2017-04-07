@@ -31,6 +31,7 @@ import cn.bmob.v3.BmobQuery;
 import cn.bmob.v3.exception.BmobException;
 import cn.bmob.v3.listener.FindListener;
 import cn.bmob.v3.listener.SaveListener;
+import cn.jpush.im.android.api.model.UserInfo;
 import dong.lan.mapeye.bmob.bean.BContact;
 import dong.lan.mapeye.bmob.bean.BPoint;
 import dong.lan.mapeye.bmob.bean.BRecord;
@@ -40,6 +41,7 @@ import dong.lan.mapeye.model.Point;
 import dong.lan.mapeye.model.Record;
 import dong.lan.mapeye.model.users.Contact;
 import dong.lan.mapeye.model.users.Group;
+import dong.lan.mapeye.model.users.User;
 import io.realm.Realm;
 import io.realm.RealmList;
 import rx.Subscription;
@@ -70,60 +72,64 @@ public class BmobAction {
 
 
     public static void getAllRecord() {
-        BmobQuery<BUser> q = new BmobQuery<>();
+        final BmobQuery<BUser> q = new BmobQuery<>();
         q.addWhereEqualTo("identifier", UserManager.instance().myIdentifier());
         q.findObjectsObservable(BUser.class).map(new Func1<List<BUser>, Subscription>() {
             @Override
-            public Subscription call(List<BUser> bUsers) {
+            public Subscription call(final List<BUser> bUsers) {
                 Logger.d(bUsers);
                 if (bUsers == null || bUsers.isEmpty())
                     return null;
                 BmobQuery<BRecord> query = new BmobQuery<>();
                 query.addWhereEqualTo("own", bUsers.get(0));
+                query.include("own");
                 return query.findObjectsObservable(BRecord.class).subscribe(new Action1<List<BRecord>>() {
                     @Override
                     public void call(final List<BRecord> bRecords) {
                         Logger.d(bRecords);
-                        if (bRecords != null) {
-                            Realm realm = Realm.getDefaultInstance();
-                            realm.executeTransactionAsync(new Realm.Transaction() {
-                                @Override
-                                public void execute(Realm realm) {
-                                    for (BRecord record : bRecords) {
-                                        List<BContact> bcs = record.getContacts();
-                                        Group group = realm.createObject(Group.class);
-                                        group.setGroupId(record.getId());
-                                        group.setDescription(record.getInfo());
-                                        group.setMembers(new RealmList<Contact>());
-                                        for (BContact c : bcs) {
-                                            Contact contact = c.toContact();
-                                            group.getMembers().add(contact);
-                                            if (group.getOwner() == null)
-                                                group.setOwner(contact.getUser());
-                                        }
-
-                                        Record r = realm.createObject(Record.class);
-                                        r.setId(record.getId());
-                                        r.setCreateTime(record.getCreateTime());
-                                        r.setInfo(record.getInfo());
-                                        r.setLabel(record.getLabel());
-                                        r.setOwn(group.getOwner());
-                                        r.setRadius(record.getRadius());
-                                        r.setType(record.getType());
-                                        r.setPoints(new RealmList<Point>());
-
-                                        for (BPoint p : record.getPoints()) {
-                                            r.getPoints().add(new Point(p.lat, p.lng));
-                                        }
-                                        realm.setAutoRefresh(true);
-                                    }
-                                }
-                            });
-                        }
+                        save(bRecords, bUsers.get(0));
                     }
                 });
             }
         }).subscribeOn(Schedulers.io()).observeOn(Schedulers.io()).subscribe();
+    }
+
+    private static void save(final List<BRecord> bRecords, final BUser ower) {
+        if (bRecords != null) {
+            Realm realm = Realm.getDefaultInstance();
+            realm.executeTransactionAsync(new Realm.Transaction() {
+                @Override
+                public void execute(Realm realm) {
+                    for (BRecord record : bRecords) {
+                        List<BContact> bcs = record.getContacts();
+                        Group group = new Group();
+                        group.setGroupId(record.getId());
+                        group.setDescription(record.getInfo());
+                        group.setMembers(new RealmList<Contact>());
+                        group.setOwner(ower.toUser());
+                        for (BContact c : bcs) {
+                            Contact contact = c.toContact();
+                            group.getMembers().add(contact);
+                        }
+                        realm.copyToRealmOrUpdate(group);
+                        Record r = new Record();
+                        r.setId(record.getId());
+                        r.setCreateTime(record.getCreateTime());
+                        r.setInfo(record.getInfo());
+                        r.setLabel(record.getLabel());
+                        r.setOwn(ower.toUser());
+                        r.setRadius(record.getRadius());
+                        r.setType(record.getType());
+                        r.setPoints(new RealmList<Point>());
+
+                        for (BPoint p : record.getPoints()) {
+                            r.getPoints().add(new Point(p.lat, p.lng));
+                        }
+                        realm.copyToRealmOrUpdate(r);
+                    }
+                }
+            });
+        }
     }
 
     public static void addContact(Group group) {
@@ -191,6 +197,17 @@ public class BmobAction {
                     BRecord record = list.get(0);
                     record.removeAll("contacts", Arrays.asList(c));
                 }
+            }
+        });
+    }
+
+    public static void register(UserInfo myInfo) {
+        BUser user = new BUser(new User(myInfo));
+        user.save(new SaveListener<String>() {
+            @Override
+            public void done(String s, BmobException e) {
+                UserManager.instance().setUserBmobObjId(s);
+                Log.d(TAG, "done: " + s + "->" + e);
             }
         });
     }
