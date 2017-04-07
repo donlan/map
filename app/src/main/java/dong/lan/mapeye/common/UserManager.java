@@ -89,7 +89,6 @@ public class UserManager {
     }
 
 
-
     /**
      * 保存联系人信息到Realm中
      *
@@ -103,7 +102,11 @@ public class UserManager {
         contacts = realm.where(Contacts.class).equalTo("owner.identifier", identifier).findFirst();
         if (contacts == null) {
             contacts = realm.createObject(Contacts.class);
-            contacts.setOwner(user);
+            if (user.isManaged()) {
+                contacts.setOwner(user);
+            } else {
+                contacts.setOwner(realm.where(User.class).equalTo("identifier", user.identifier()).findFirst());
+            }
         }
         for (UserInfo userInfo : userInfos) {
             User user = realm.createObject(User.class);
@@ -158,27 +161,24 @@ public class UserManager {
      */
     public Contacts getContacts(Realm realm) {
         Contacts contacts = null;
-            realm.beginTransaction();
-            contacts = realm.where(Contacts.class).equalTo("owner.identifier", userInfo.identifier()).findFirst();
-            realm.commitTransaction();
+        contacts = Realm.getDefaultInstance().where(Contacts.class)
+                .equalTo("owner.identifier", userInfo.identifier()).findFirstAsync();
         return contacts;
     }
-
 
 
     /**
      * @return 已登陆则返回true，否则返回false
      */
     public boolean isLogin() {
-        return SPHelper.getBoolean(KEY_IS_LOGIN);
+        return SPHelper.getBoolean(KEY_IS_LOGIN) && JMessageClient.getMyInfo() != null;
     }
 
 
-    public void login(String phone, BasicCallback callback){
-        Log.d(TAG, "login: "+phone);
-        JMessageClient.login(phone,Secure.encode(phone),callback);
+    public void login(String phone, BasicCallback callback) {
+        Log.d(TAG, "login: " + phone);
+        JMessageClient.login(phone, Secure.encode(phone), callback);
     }
-
 
 
     /**
@@ -189,7 +189,7 @@ public class UserManager {
     public boolean logout() {
         JMessageClient.logout();
         SPHelper.put("USER", "");
-        SPHelper.putBoolean(KEY_IS_LOGIN,false);
+        SPHelper.putBoolean(KEY_IS_LOGIN, false);
         return true;
     }
 
@@ -224,7 +224,7 @@ public class UserManager {
         Group group = null;
         String id = UserManager.instance().myIdentifier();
         realm.beginTransaction();
-        group = realm.createObject(Group.class);
+        group = new Group();
         group.setGroupId(groupId);
         group.setOwner(realm.where(User.class).equalTo("identifier", id).findFirst());
         group.setDescription(label);
@@ -232,7 +232,7 @@ public class UserManager {
             group.setMembers(new RealmList<Contact>());
         for (UserInfo user :
                 userInfos) {
-            if (user.getUserName().equals(id) )
+            if (user.getUserName().equals(id))
                 continue;
             Contact contact = new Contact();
             contact.setId(Contact.createId(groupId, user.getUserName()));
@@ -244,6 +244,7 @@ public class UserManager {
 
 
         }
+        realm.copyToRealmOrUpdate(group);
         realm.commitTransaction();
         return group;
     }
@@ -352,7 +353,6 @@ public class UserManager {
 
     void updateContactStatus(String id, final int status) {
         Realm realm = Realm.getDefaultInstance();
-        Logger.d("updateContactStatus");
         if (realm.isInTransaction())
             realm.cancelTransaction();
         realm.beginTransaction();
@@ -385,21 +385,46 @@ public class UserManager {
     }
 
     public void initMe() {
-        UserInfo userInfo = JMessageClient.getMyInfo();
-        realm.beginTransaction();
-        user = realm.where(User.class).equalTo("identifier", userInfo.getUserName()).findFirst();
-        if (user == null) {
-            user = new User(userInfo);
-            realm.copyToRealm(user);
-        }
-        if (user.isManaged())
-            this.userInfo = realm.copyFromRealm(user);
-        else {
-            this.userInfo = user;
-        }
-        realm.commitTransaction();
-        SPHelper.put("USER", MessageHelper.getInstance().toJson(userInfo));
+        final UserInfo userInfo = JMessageClient.getMyInfo();
+        realm.executeTransaction(new Realm.Transaction() {
+            @Override
+            public void execute(Realm realm) {
+                user = realm.where(User.class).equalTo("identifier", userInfo.getUserName()).findFirst();
+                if (user == null) {
+                    user = new User(userInfo);
+                    realm.copyToRealm(user);
+                }
+                if (user.isManaged())
+                    UserManager.this.userInfo = realm.copyFromRealm(user);
+                else {
+                    UserManager.this.userInfo = user;
+                }
+                SPHelper.put("USER", MessageHelper.getInstance().toJson(userInfo));
 
-        Logger.d(userInfo);
+                Logger.d(userInfo);
+            }
+        });
+
+    }
+
+    public void setUserBmobObjId(final String s) {
+        if (user.isManaged()) {
+            realm.executeTransactionAsync(new Realm.Transaction() {
+                @Override
+                public void execute(Realm realm) {
+                    user.setBmobObjId(s);
+                }
+            });
+        } else {
+            realm.executeTransactionAsync(new Realm.Transaction() {
+                @Override
+                public void execute(Realm realm) {
+                    User user = realm.where(User.class).equalTo("identifier", myIdentifier()).findFirst();
+                    if (user != null) {
+                        user.setBmobObjId(s);
+                    }
+                }
+            });
+        }
     }
 }
