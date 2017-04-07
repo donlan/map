@@ -20,8 +20,6 @@
 
 package dong.lan.mapeye.utils;
 
-import android.graphics.Color;
-
 import com.baidu.location.BDLocation;
 import com.baidu.mapapi.map.BaiduMap;
 import com.baidu.mapapi.map.BitmapDescriptor;
@@ -37,14 +35,13 @@ import com.baidu.mapapi.map.PolygonOptions;
 import com.baidu.mapapi.map.PolylineOptions;
 import com.baidu.mapapi.map.Stroke;
 import com.baidu.mapapi.model.LatLng;
+import com.baidu.mapapi.model.LatLngBounds;
 
 import java.util.ArrayList;
 import java.util.List;
 
-import dong.lan.mapeye.model.Point;
 import dong.lan.mapeye.model.Record;
 import dong.lan.mapeye.model.TraceLocation;
-import io.realm.RealmList;
 
 /**
  * Created by 梁桂栋 on 16-11-10 ： 下午9:50.
@@ -88,6 +85,24 @@ public class MapUtils {
                 .longitude(point.longitude).build();
         baiduMap.setMyLocationData(locData);
         MapStatusUpdate u = MapStatusUpdateFactory.newLatLng(point);
+        baiduMap.setMyLocationConfigeration(new MyLocationConfiguration(
+                MyLocationConfiguration.LocationMode.NORMAL, true, locBmp));
+        baiduMap.animateMapStatus(u);
+    }
+
+    /**
+     * 将地图的试图定位到某一点
+     * @param baiduMap 当前显示的地图
+     * @param points 指定的显示位置点
+     * @param locBmp 位置显示的图标
+     */
+    public static void setLocation(BaiduMap baiduMap, List<LatLng> points, BitmapDescriptor locBmp) {
+        LatLngBounds.Builder bounds = new LatLngBounds.Builder();
+        for (LatLng p : points
+                ) {
+            bounds.include(p);
+        }
+        MapStatusUpdate u = MapStatusUpdateFactory.newLatLngBounds(bounds.build());
         baiduMap.setMyLocationConfigeration(new MyLocationConfiguration(
                 MyLocationConfiguration.LocationMode.NORMAL, true, locBmp));
         baiduMap.animateMapStatus(u);
@@ -157,6 +172,23 @@ public class MapUtils {
                 .draggable(true)
                 .perspective(true)
                 .zIndex(3)
+                .icon(bitmap);
+        return (Marker) baiduMap.addOverlay(option);
+    }
+
+    /**
+     * 在地图上画一个Marker
+     * @param baiduMap
+     * @param point 绘制Marker的位置坐标点
+     * @param bitmap 绘制Marker的图标
+     * @return 绘制得到的Marker
+     */
+    public static Marker drawMarker(BaiduMap baiduMap, LatLng point, BitmapDescriptor bitmap, float achorX, float achorY) {
+        OverlayOptions option = new MarkerOptions()
+                .position(point)
+                .draggable(true)
+                .perspective(true)
+                .anchor(achorX, achorY)
                 .icon(bitmap);
         return (Marker) baiduMap.addOverlay(option);
     }
@@ -237,7 +269,6 @@ public class MapUtils {
             points.add(p);
             if(bitmap!=null){
                 Marker marker = drawMarker(baiduMap,p,bitmap);
-                marker.setTitle(DateUtils.getTime(location.getCreateTime(),"yyyy.MM.dd hh:mm"));
             }
             if(i == 0){
                 setLocation(baiduMap,p,bitmap);
