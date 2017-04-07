@@ -26,7 +26,6 @@ import android.support.v7.widget.GridLayoutManager;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.text.TextUtils;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -50,12 +49,14 @@ import dong.lan.mapeye.R;
 import dong.lan.mapeye.common.JMCenter;
 import dong.lan.mapeye.common.UserManager;
 import dong.lan.mapeye.model.Record;
+import dong.lan.mapeye.model.message.CMDMessage;
 import dong.lan.mapeye.model.users.Contacts;
 import dong.lan.mapeye.model.users.User;
-import dong.lan.mapeye.model.message.CMDMessage;
 import dong.lan.mapeye.utils.NetUtils;
 import dong.lan.mapeye.views.customsView.RecycleViewDivider;
 import io.realm.Realm;
+import io.realm.RealmChangeListener;
+import io.realm.RealmModel;
 
 /**
  * Created by 梁桂栋 on 16-11-16 ： 下午11:31.
@@ -67,17 +68,20 @@ import io.realm.Realm;
 public class ContactSelectActivity extends BaseActivity {
 
     private static final String TAG = ContactSelectActivity.class.getSimpleName();
-    private boolean isDoing = false;
     @BindView(R.id.usersList)
     RecyclerView userList;
+    @BindView(R.id.done)
+    TextView done;
+    private boolean isDoing = false;
+    private Adapter adapter;
+    private String groupId;
+    private Realm realm;
+    private Contacts contacts;
 
     @OnClick(R.id.back)
     public void back() {
         finish();
     }
-
-    @BindView(R.id.done)
-    TextView done;
 
     @OnClick(R.id.done)
     public void doneAction() {
@@ -124,11 +128,6 @@ public class ContactSelectActivity extends BaseActivity {
         isDoing = false;
     }
 
-
-    private Adapter adapter;
-    private String groupId;
-    private Realm realm;
-
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -140,32 +139,44 @@ public class ContactSelectActivity extends BaseActivity {
             if (TextUtils.isEmpty(groupId)) {
                 return;
             }
-            Log.d(TAG, "onCreate: "+groupId);
             userList.setLayoutManager(new GridLayoutManager(this, 1));
             userList.addItemDecoration(new RecycleViewDivider(this, LinearLayoutManager.VERTICAL, 5.0f));
-            adapter = new Adapter();
-            userList.setAdapter(adapter);
+            contacts = UserManager.instance().getContacts(realm);
+            if (contacts != null) {
+                contacts.addChangeListener(new RealmChangeListener<RealmModel>() {
+                    @Override
+                    public void onChange(RealmModel element) {
+                        if (adapter == null) {
+                            adapter = new Adapter();
+                            userList.setAdapter(adapter);
+                        } else {
+                            adapter.notifyDataSetChanged();
+                        }
+                    }
+                });
+            }
+
         } else {
             show("没有此记录相关的详细人配置");
         }
     }
 
-
     @Override
     protected void onDestroy() {
         super.onDestroy();
         realm.close();
+        if (adapter != null)
+            adapter.destroy();
         realm = null;
     }
 
     class Adapter extends RecyclerView.Adapter<SelectHolder> {
         private HashSet<Integer> set = new HashSet<>();
         private LayoutInflater inflater;
-        private Contacts contacts;
+
 
         Adapter() {
             inflater = LayoutInflater.from(ContactSelectActivity.this);
-            contacts = UserManager.instance().getContacts(realm);
         }
 
         @Override
@@ -199,7 +210,7 @@ public class ContactSelectActivity extends BaseActivity {
 
         @Override
         public int getItemCount() {
-            return contacts == null ? 0 : contacts.getContacts().size();
+            return contacts == null || contacts.getContacts() == null ? 0 : contacts.getContacts().size();
         }
 
         public HashSet<Integer> getSet() {
@@ -212,6 +223,12 @@ public class ContactSelectActivity extends BaseActivity {
                 t.add(contacts.getContacts().get(aSet));
             }
             return t;
+        }
+
+        public void destroy() {
+            if (contacts != null)
+                contacts.removeChangeListeners();
+            contacts = null;
         }
     }
 
