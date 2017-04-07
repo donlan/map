@@ -45,7 +45,6 @@ import com.baidu.mapapi.map.BitmapDescriptorFactory;
 import com.baidu.mapapi.map.MapView;
 import com.baidu.mapapi.map.Marker;
 import com.baidu.mapapi.model.LatLng;
-import com.orhanobut.logger.Logger;
 
 import java.util.List;
 
@@ -58,9 +57,9 @@ import dong.lan.mapeye.common.MonitorManager;
 import dong.lan.mapeye.common.UserManager;
 import dong.lan.mapeye.contracts.RecordDetailContract;
 import dong.lan.mapeye.events.MonitorTaskEvent;
-import dong.lan.mapeye.model.users.Contact;
 import dong.lan.mapeye.model.Record;
 import dong.lan.mapeye.model.TraceLocation;
+import dong.lan.mapeye.model.users.Contact;
 import dong.lan.mapeye.model.users.User;
 import dong.lan.mapeye.presenter.RecordDetailPresenter;
 import dong.lan.mapeye.utils.MapUtils;
@@ -68,6 +67,7 @@ import dong.lan.mapeye.utils.StringHelper;
 import dong.lan.mapeye.views.BaseActivity;
 import dong.lan.mapeye.views.ChatActivity;
 import dong.lan.mapeye.views.ContactSelectActivity;
+import dong.lan.mapeye.views.customsView.MapPinNumView;
 import dong.lan.mapeye.views.customsView.PinView;
 import dong.lan.mapeye.views.customsView.ToggleCheckBox;
 import rx.Subscription;
@@ -83,8 +83,8 @@ import rx.functions.Action1;
 
 public class RecordDetailActivity extends BaseActivity implements RecordDetailContract.RecordDetailView {
 
-    private static final String TAG = "RecordDetailActivity";
     public static final int PICK_CONTACT = 1001;
+    private static final String TAG = "RecordDetailActivity";
     @BindView(R.id.monitorMapView)
     MapView mapView;
     @BindView(R.id.monitorToolbar)
@@ -101,9 +101,18 @@ public class RecordDetailActivity extends BaseActivity implements RecordDetailCo
     ImageButton reedit;
     @BindView(R.id.reeditCancel)
     ImageButton cancel;
+    double lat = 38.023233;
+    double lng = 112.454653;
+    Marker marker;
+    int count = 1000;
     private Subscription locSubscriber;
     private Subscription refreshSub;
     private Subscription monitorSubscription;
+    private BaiduMap baiduMap;
+    private RecordDetailPresenter presenter;
+    private Adapter adapter;
+    private BitmapDescriptor bitmap = BitmapDescriptorFactory.fromResource(R.drawable.nav);
+    private BitmapDescriptor locBitmap = BitmapDescriptorFactory.fromResource(R.drawable.tip);
 
     @OnClick(R.id.reeditCancel)
     public void cancelEdit() {
@@ -125,7 +134,6 @@ public class RecordDetailActivity extends BaseActivity implements RecordDetailCo
         presenter.checkEdit();
     }
 
-
     @OnClick(R.id.addMonitorUser)
     public void addMonitorUser() {
         Intent intent = new Intent(this, ContactSelectActivity.class);
@@ -143,14 +151,6 @@ public class RecordDetailActivity extends BaseActivity implements RecordDetailCo
         presenter.deleteRecord();
     }
 
-
-    private BaiduMap baiduMap;
-    private RecordDetailPresenter presenter;
-    private Adapter adapter;
-
-    private BitmapDescriptor bitmap = BitmapDescriptorFactory.fromResource(R.drawable.nav);
-    private BitmapDescriptor locBitmap = BitmapDescriptorFactory.fromResource(R.drawable.tip);
-
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -160,10 +160,6 @@ public class RecordDetailActivity extends BaseActivity implements RecordDetailCo
         checkIntent();
     }
 
-    double lat = 38.023233;
-    double lng = 112.454653;
-    Marker marker;
-    int count = 1000;
     @Override
     public void init() {
         baiduMap = mapView.getMap();
@@ -175,22 +171,6 @@ public class RecordDetailActivity extends BaseActivity implements RecordDetailCo
             }
         });
 
-    }
-
-    private class H extends Handler{
-        @Override
-        public void handleMessage(Message msg) {
-            if(msg.what == 100){
-                count--;
-                if(count>0) {
-                    lat += 0.001;
-                    lng += 0.001;
-                    marker.setPosition(new LatLng(lat, lng));
-                    Logger.d(lat + "," + lng);
-                    sendEmptyMessageDelayed(100, 500);
-                }
-            }
-        }
     }
 
     @Override
@@ -287,7 +267,7 @@ public class RecordDetailActivity extends BaseActivity implements RecordDetailCo
     }
 
     @Override
-    public void setRecordLocation(LatLng point) {
+    public void setRecordLocation(List<LatLng> point) {
         MapUtils.setLocation(baiduMap, point, locBitmap);
 
     }
@@ -298,7 +278,6 @@ public class RecordDetailActivity extends BaseActivity implements RecordDetailCo
         MapUtils.drawMarker(baiduMap, points, bitmap);
         MapUtils.drawRecord(baiduMap, points, type, radius);
     }
-
 
     @Override
     public BaiduMap getMap() {
@@ -328,7 +307,6 @@ public class RecordDetailActivity extends BaseActivity implements RecordDetailCo
         checked.setVisibility(View.GONE);
 
     }
-
 
     @Override
     protected void onStart() {
@@ -360,6 +338,33 @@ public class RecordDetailActivity extends BaseActivity implements RecordDetailCo
             monitorSubscription.unsubscribe();
     }
 
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        if (requestCode == 200) {
+            if (adapter == null) {
+                adapter = new Adapter();
+                usersList.setAdapter(adapter);
+            } else
+                refreshList();
+        }
+        super.onActivityResult(requestCode, resultCode, data);
+
+    }
+
+    private class H extends Handler {
+        @Override
+        public void handleMessage(Message msg) {
+            if (msg.what == 100) {
+                count--;
+                if (count > 0) {
+                    lat += 0.001;
+                    lng += 0.001;
+                    marker.setPosition(new LatLng(lat, lng));
+                    sendEmptyMessageDelayed(100, 500);
+                }
+            }
+        }
+    }
 
     class Adapter extends RecyclerView.Adapter<ViewHolder> {
 
@@ -389,6 +394,7 @@ public class RecordDetailActivity extends BaseActivity implements RecordDetailCo
             holder.info.setText(StringHelper.MonitorInfo(contact));
             holder.tag.setText(StringHelper.getContactTag(contact));
             holder.status.setText(StringHelper.getContactStatus(contact));
+            holder.numView.setNum(String.valueOf(position + 1));
         }
 
         @Override
@@ -396,7 +402,6 @@ public class RecordDetailActivity extends BaseActivity implements RecordDetailCo
             return presenter.getMonitorUsersSize();
         }
     }
-
 
     class ViewHolder extends RecyclerView.ViewHolder {
         @BindView(R.id.itemMonitorInfo)
@@ -411,6 +416,13 @@ public class RecordDetailActivity extends BaseActivity implements RecordDetailCo
         LabelTextView tag;
         @BindView(R.id.monitorHandleLayout)
         LinearLayout handlerLayout;
+        @BindView(R.id.itemMonitorNum)
+        MapPinNumView numView;
+
+        public ViewHolder(View itemView) {
+            super(itemView);
+            ButterKnife.bind(this, itemView);
+        }
 
         @OnClick(R.id.toggleSwitcher)
         void click(View v) {
@@ -450,23 +462,5 @@ public class RecordDetailActivity extends BaseActivity implements RecordDetailCo
         void monitorTimerTask(){
             presenter.toMonitorTimerTask(getLayoutPosition());
         }
-
-        public ViewHolder(View itemView) {
-            super(itemView);
-            ButterKnife.bind(this, itemView);
-        }
-    }
-
-    @Override
-    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
-        if (requestCode == 200) {
-            if (adapter == null) {
-                adapter = new Adapter();
-                usersList.setAdapter(adapter);
-            } else
-                refreshList();
-        }
-        super.onActivityResult(requestCode, resultCode, data);
-
     }
 }
