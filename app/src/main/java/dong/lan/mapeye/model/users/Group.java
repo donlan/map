@@ -23,6 +23,7 @@ package dong.lan.mapeye.model.users;
 import dong.lan.mapeye.model.Record;
 import io.realm.RealmList;
 import io.realm.RealmObject;
+import io.realm.annotations.PrimaryKey;
 
 /**
  * Created by 梁桂栋 on 16-11-21 ： 上午12:11.
@@ -33,6 +34,7 @@ import io.realm.RealmObject;
 
 public class Group extends RealmObject {
 
+    @PrimaryKey
     private String groupId;               //对应极光Api的groupId
     private String description;         //描述信息
     private User owner;                 //所属与的用户
