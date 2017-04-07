@@ -63,17 +63,15 @@ public class MonitorTimerTaskActivity extends BaseActivity {
     @BindView(R.id.bar_center)
     TextView tittle;
     private RealmResults<MonitorTimer> timers;
+    private Adapter adapter;
+    private Realm realm;
+    private String recordId;
+    private String identifier;
 
     @OnClick(R.id.bar_left)
     void back() {
         finish();
     }
-
-
-    private Adapter adapter;
-    private Realm realm;
-    private String recordId;
-    private String identifier;
 
     @OnClick(R.id.bar_right)
     void refreshTimers() {
@@ -156,9 +154,12 @@ public class MonitorTimerTaskActivity extends BaseActivity {
             viewHolder.timerRecordInfo.setText(value.getRecord().getLabel());
             viewHolder.timerRepeat.setText(value.tagString());
 
-            if(value.getStartTime()<System.currentTimeMillis()){
+            if (value.getEndTime() < System.currentTimeMillis()) {
+                viewHolder.timerSwitcher.setChecked(false);
                 viewHolder.timerSwitcher.setVisibility(View.GONE);
             }
+            viewHolder.info.setText(value.getDesc());
+            viewHolder.timeInfo.setText(DateUtils.getTime(value.getCreateTime(), "创建时间: yyyy.MM.dd HH:mm"));
             viewHolder.timerSwitcher.setChecked(value.isOpen());
             viewHolder.timerStartTime.setText(DateUtils.getTime(value.getStartTime(), "MM月dd日 HH:mm"));
             viewHolder.timerEndTime.setText(DateUtils.getTime(value.getEndTime(), "MM月dd日 HH:mm"));
@@ -167,8 +168,12 @@ public class MonitorTimerTaskActivity extends BaseActivity {
 
     class ViewHolder extends BaseHolder {
 
+        @BindView(R.id.timer_info)
+        TextView info;
+        @BindView(R.id.timer_time_info)
+        TextView timeInfo;
         @BindView(R.id.timer_record_info)
-        LabelTextView timerRecordInfo;
+        TextView timerRecordInfo;
         @BindView(R.id.timer_repeat)
         LabelTextView timerRepeat;
         @BindView(R.id.timer_start_time)
@@ -185,7 +190,8 @@ public class MonitorTimerTaskActivity extends BaseActivity {
             timerSwitcher.setOnCheckChangeListener(new ToggleButton.OnCheckChangeListener() {
                 @Override
                 public void onChanged(boolean isChecked) {
-                    MonitorManager.instance().handleTimerStatus(timers.get(getLayoutPosition()), isChecked, realm);
+                    MonitorManager.instance().handleTimerStatus(MonitorTimerTaskActivity.this,
+                            timers.get(getLayoutPosition()), isChecked, realm);
                 }
             });
             itemView.setOnLongClickListener(new View.OnLongClickListener() {
@@ -196,8 +202,9 @@ public class MonitorTimerTaskActivity extends BaseActivity {
                             .setPositiveButton("确定", new DialogInterface.OnClickListener() {
                                 @Override
                                 public void onClick(DialogInterface dialog, int which) {
-                                    adapter.notifyItemRemoved(getLayoutPosition());
-                                    MonitorManager.instance().deleteMonitor(timers.get(getLayoutPosition()), realm);
+                                    MonitorManager.instance()
+                                            .deleteMonitor(timers.get(getLayoutPosition()), realm);
+                                    adapter.notifyDataSetChanged();
                                 }
                             }).setNegativeButton("取消",null)
                             .show();
