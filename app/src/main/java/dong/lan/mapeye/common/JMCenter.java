@@ -165,6 +165,7 @@ public class JMCenter {
                     traceLocation.setCreateTime(msg.getCreateTime());
                     traceLocation.setRadius(content.getScale().floatValue());
                     MonitorManager.instance().handlerMonitorLocation(recordId, identifier, traceLocation);
+                    MonitorManager.instance().post(traceLocation);
                 }
                 break;
             case eventNotification:
@@ -226,7 +227,7 @@ public class JMCenter {
             case CMDMessage.CMD_SET_LOCATION_SPEED:
                 int time = getNumberExtras(EXTRAS_LOCATION_SPEED, msg).intValue();
                 LocationService locationService = MonitorManager.instance().currentLocationService();
-                if (locationService.isRunning()) {
+                if (locationService != null && locationService.isRunning()) {
                     LocationClientOption option = locationService.getDefaultLocationClientOption();
                     option.setScanSpan(time * 1000);
                     if (time == 1) {
