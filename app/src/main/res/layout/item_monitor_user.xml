@@ -39,10 +39,10 @@
 
 
     <dong.lan.library.LabelTextView
-        android:layout_toRightOf="@id/itemMonitorUserHead"
         android:id="@+id/itemMonitorStatus"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
+        android:layout_toRightOf="@id/itemMonitorUserHead"
         android:paddingBottom="2dp"
         android:paddingLeft="8dp"
         android:paddingRight="8dp"
@@ -56,23 +56,24 @@
         android:id="@+id/itemMonitorTag"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
+        android:layout_marginLeft="16dp"
+        android:layout_marginRight="16dp"
         android:layout_toRightOf="@id/itemMonitorStatus"
         android:paddingBottom="2dp"
         android:paddingLeft="8dp"
         android:paddingRight="8dp"
         android:paddingTop="2dp"
-        android:layout_marginRight="16dp"
-        android:layout_marginLeft="16dp"
         android:text="待认证"
         android:textColor="@color/md_white_1000"
         android:textSize="14sp"
         app:bg_color="@color/colorAccent"
         app:radius="20dp" />
+
     <TextView
-        android:layout_below="@id/itemMonitorStatus"
         android:id="@+id/itemMonitorName"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
+        android:layout_below="@id/itemMonitorStatus"
         android:layout_marginTop="4dp"
         android:layout_toRightOf="@id/itemMonitorUserHead"
         android:lines="1"
@@ -99,25 +100,31 @@
         android:background="@color/md_grey_300" />
 
     <dong.lan.mapeye.views.customsView.ToggleCheckBox
-        android:layout_marginLeft="10dp"
-        android:layout_marginRight="10dp"
-        android:layout_below="@id/itemMonitorInfo"
-        android:layout_marginTop="4dp"
-        android:layout_alignParentRight="true"
         android:id="@+id/toggleSwitcher"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
+        android:layout_alignParentRight="true"
+        android:layout_below="@id/itemMonitorInfo"
+        android:layout_marginLeft="10dp"
+        android:layout_marginRight="10dp"
+        android:layout_marginTop="4dp"
         android:background="@drawable/toggle_arrow"
         android:button="@null" />
 
+    <dong.lan.mapeye.views.customsView.MapPinNumView
+        android:id="@+id/itemMonitorNum"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentRight="true" />
+
     <LinearLayout
-        android:visibility="gone"
         android:id="@+id/monitorHandleLayout"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_below="@id/itemMonitorInfo"
         android:layout_marginTop="20dp"
-        android:orientation="horizontal">
+        android:orientation="horizontal"
+        android:visibility="gone">
 
         <ImageButton
             android:id="@+id/startMonitor"
@@ -170,6 +177,7 @@
             android:paddingRight="16dp"
             android:src="@drawable/mobile_48"
             android:tint="@color/md_grey_800" />
+
         <ImageButton
             android:id="@+id/timerTask"
             android:layout_width="wrap_content"

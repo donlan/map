@@ -30,48 +30,64 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_margin="8dp"
-        android:paddingLeft="10dp"
-        android:paddingTop="4dp"
         android:paddingBottom="4dp"
+        android:paddingLeft="10dp"
         android:paddingRight="10dp"
+        android:paddingTop="4dp"
         android:text="单次"
         android:textColor="@color/md_white_1000"
-        android:textSize="16sp"
+        android:textSize="14sp"
         app:bg_color="@color/colorPrimary"
-        app:radius="8dp" />
+        app:radius="16dp" />
 
-    <dong.lan.library.LabelTextView
+
+    <TextView
 
         android:id="@+id/timer_record_info"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
+        android:layout_marginTop="8dp"
         android:layout_toRightOf="@id/timer_repeat"
+        android:paddingBottom="8dp"
         android:paddingLeft="16dp"
         android:paddingRight="16dp"
-        android:paddingTop="8dp"
-        android:paddingBottom="8dp"
-        android:layout_marginTop="8dp"
         android:textColor="@color/colorPrimary"
-        android:textSize="20sp"
-        app:bg_color="@color/colorPrimary"
-        app:clickAnimation="false"
-        app:radius="8dp"
-        app:strokeWidth="1dp" />
+        android:textSize="18sp" />
+
+    <TextView
+        android:id="@+id/timer_info"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_below="@id/timer_record_info"
+        android:layout_marginTop="8dp"
+        android:paddingBottom="8dp"
+        android:paddingLeft="16dp"
+        android:paddingRight="16dp"
+        android:textColor="@color/colorPrimary"
+        android:textSize="18sp" />
+
+
+    <View
+        android:layout_width="match_parent"
+        android:layout_height="1dp"
+        android:layout_below="@id/timer_info"
+        android:layout_marginTop="8dp"
+        android:background="@color/md_blue_grey_100" />
 
     <ImageView
         android:id="@+id/timer_arrow_tag"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_below="@id/timer_record_info"
+        android:layout_below="@id/timer_info"
         android:layout_centerHorizontal="true"
-        android:layout_marginTop="10dp"
+        android:layout_marginTop="20dp"
         android:background="@drawable/arrow_right_grey_48" />
 
     <TextView
         android:id="@+id/timer_start_time"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_below="@id/timer_record_info"
+        android:layout_below="@id/timer_info"
         android:layout_marginTop="12dp"
         android:layout_toLeftOf="@id/timer_arrow_tag"
         android:gravity="center"
@@ -82,22 +98,35 @@
         android:id="@+id/timer_end_time"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_below="@id/timer_record_info"
+        android:layout_below="@id/timer_info"
         android:layout_marginTop="10dp"
         android:layout_toRightOf="@id/timer_arrow_tag"
         android:gravity="center"
         android:textSize="18sp" />
 
-    <dong.lan.mapeye.views.customsView.ToggleButton
-        app:tb_circle_radius="20dp"
-        app:tb_check_bg_color="@color/md_blue_200"
-        app:tb_uncheck_color="@color/md_grey_700"
-        app:tb_check_color="@color/colorPrimary"
-        android:id="@+id/timer_switcher"
+    <TextView
+
+        android:id="@+id/timer_time_info"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_below="@id/timer_arrow_tag"
+        android:layout_marginTop="8dp"
+        android:paddingBottom="8dp"
+        android:paddingLeft="16dp"
+        android:paddingRight="16dp"
+        android:textColor="@color/colorPrimary"
+        android:textSize="14sp" />
+
+    <dong.lan.mapeye.views.customsView.ToggleButton
+        android:id="@+id/timer_switcher"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_below="@id/timer_time_info"
         android:layout_centerHorizontal="true"
-        android:layout_marginTop="12dp" />
+        android:layout_marginTop="12dp"
+        app:tb_check_bg_color="@color/md_blue_200"
+        app:tb_check_color="@color/colorPrimary"
+        app:tb_circle_radius="20dp"
+        app:tb_uncheck_color="@color/md_grey_700" />
 
 </RelativeLayout>

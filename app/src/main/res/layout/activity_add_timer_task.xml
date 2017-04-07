@@ -19,8 +19,8 @@
   -->
 
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:tools="http://schemas.android.com/tools"
     xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
     android:id="@+id/activity_add_timer_task"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
@@ -29,122 +29,147 @@
 
     <include layout="@layout/action_bar" />
 
-    <TextView
+    <EditText
+        android:id="@+id/timer_desc"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
         android:layout_marginLeft="16dp"
         android:layout_marginRight="16dp"
+        android:layout_marginTop="20dp"
+        android:background="@drawable/circle_rect_stroke_black_8"
+        android:drawablePadding="12dp"
+        android:gravity="center_vertical"
+        android:hint="@string/timer_task_desc_hint"
+        android:paddingBottom="8dp"
+        android:paddingLeft="10dp"
+        android:paddingRight="10dp"
+        android:paddingTop="8dp"
+        android:textSize="20sp" />
+
+    <View
+        android:layout_width="match_parent"
+        android:layout_height="1px"
+        android:layout_marginLeft="16dp"
+        android:layout_marginRight="16dp"
+        android:layout_marginTop="20dp"
+        android:background="@color/md_grey_500" />
+
+    <TextView
         android:id="@+id/timer_start_time"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginLeft="16dp"
+        android:layout_marginRight="16dp"
         android:layout_marginTop="20dp"
         android:drawableLeft="@drawable/clock_48"
         android:drawablePadding="12dp"
-        android:hint="@string/start_time"
         android:gravity="center_vertical"
-        android:textSize="20sp"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content" />
+        android:hint="@string/start_time"
+        android:textSize="20sp" />
 
     <View
+        android:layout_width="match_parent"
+        android:layout_height="1px"
         android:layout_marginLeft="16dp"
         android:layout_marginRight="16dp"
         android:layout_marginTop="20dp"
-        android:layout_width="match_parent"
-        android:layout_height="1px"
         android:background="@color/md_grey_500"/>
 
 
     <TextView
+        android:id="@+id/timer_end_time"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
         android:layout_marginLeft="16dp"
         android:layout_marginRight="16dp"
-        android:id="@+id/timer_end_time"
+        android:layout_marginTop="20dp"
         android:drawableLeft="@drawable/clock_48"
         android:drawablePadding="12dp"
-        android:hint="@string/end_time"
         android:gravity="center_vertical"
-        android:textSize="20sp"
-        android:layout_marginTop="20dp"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content" />
+        android:hint="@string/end_time"
+        android:textSize="20sp" />
 
     <View
+        android:layout_width="match_parent"
+        android:layout_height="1px"
         android:layout_marginLeft="16dp"
         android:layout_marginRight="16dp"
         android:layout_marginTop="20dp"
-        android:layout_width="match_parent"
-        android:layout_height="1px"
         android:background="@color/md_grey_500"/>
 
     <LinearLayout
-        android:gravity="center_vertical"
-        android:layout_marginTop="20dp"
-        android:orientation="horizontal"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content">
+        android:layout_height="wrap_content"
+        android:layout_marginTop="20dp"
+        android:gravity="center_vertical"
+        android:orientation="horizontal">
 
         <TextView
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
             android:layout_marginLeft="16dp"
             android:layout_marginRight="16dp"
-            android:textSize="16sp"
-            android:text="@string/timer_task_repeat_tip"
-            android:layout_width="0dp"
             android:layout_weight="1"
-            android:layout_height="wrap_content" />
+            android:text="@string/timer_task_repeat_tip"
+            android:textSize="16sp" />
 
         <CheckBox
-            android:layout_marginLeft="16dp"
-            android:layout_marginRight="16dp"
             android:id="@+id/timer_repeat_cb"
             android:layout_width="wrap_content"
-            android:layout_height="wrap_content" />
+            android:layout_height="wrap_content"
+            android:layout_marginLeft="16dp"
+            android:layout_marginRight="16dp" />
     </LinearLayout>
 
 
     <View
+        android:layout_width="match_parent"
+        android:layout_height="1px"
         android:layout_marginLeft="16dp"
         android:layout_marginRight="16dp"
         android:layout_marginTop="20dp"
-        android:layout_width="match_parent"
-        android:layout_height="1px"
         android:background="@color/md_grey_500"/>
 
     <LinearLayout
-        android:gravity="center_vertical"
-        android:layout_marginTop="20dp"
-        android:orientation="horizontal"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content">
+        android:layout_height="wrap_content"
+        android:layout_marginTop="20dp"
+        android:gravity="center_vertical"
+        android:orientation="horizontal">
 
 
         <TextView
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
             android:layout_marginLeft="16dp"
             android:layout_marginRight="16dp"
-            android:textSize="16sp"
-            android:text="@string/timer_task_continue_tip"
-            android:layout_width="0dp"
             android:layout_weight="1"
-            android:layout_height="wrap_content" />
+            android:text="@string/timer_task_continue_tip"
+            android:textSize="16sp" />
 
         <CheckBox
-            android:layout_marginLeft="16dp"
-            android:layout_marginRight="16dp"
             android:id="@+id/timer_continue_cb"
             android:layout_width="wrap_content"
-            android:layout_height="wrap_content" />
+            android:layout_height="wrap_content"
+            android:layout_marginLeft="16dp"
+            android:layout_marginRight="16dp" />
 
     </LinearLayout>
 
 
     <dong.lan.library.LabelTextView
         android:id="@+id/timer_task_save_lvt"
+        android:layout_width="match_parent"
+        android:layout_height="50dp"
         android:layout_marginLeft="20dp"
         android:layout_marginRight="20dp"
-        app:radius="25dp"
-        app:bg_color="@color/colorPrimary"
-        android:textSize="20sp"
         android:layout_marginTop="50dp"
+        android:gravity="center"
         android:text="@string/save_timer_task"
         android:textColor="@color/md_white_1000"
-        android:gravity="center"
-        android:layout_width="match_parent"
-        android:layout_height="50dp" />
+        android:textSize="20sp"
+        app:bg_color="@color/colorPrimary"
+        app:radius="25dp" />
 
 
 </LinearLayout>

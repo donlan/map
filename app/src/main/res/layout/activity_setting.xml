@@ -34,13 +34,13 @@
         android:layout_height="match_parent">
 
         <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
             android:paddingBottom="@dimen/activity_vertical_margin"
             android:paddingLeft="@dimen/activity_horizontal_margin"
             android:paddingRight="@dimen/activity_horizontal_margin"
-            android:paddingTop="@dimen/activity_vertical_margin"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:orientation="vertical">
+            android:paddingTop="@dimen/activity_vertical_margin">
 
 
             <FrameLayout
@@ -50,46 +50,48 @@
                 android:orientation="horizontal">
 
                 <TextView
-                    android:textColor="@color/md_grey_900"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_gravity="center_vertical"
                     android:text="@string/autostart"
+                    android:textColor="@color/md_grey_900"
                     android:textSize="18sp" />
 
                 <dong.lan.mapeye.views.customsView.ToggleButton
                     android:id="@+id/setting_start_boot"
-                    app:tb_check_color="@color/colorPrimary"
-                    app:tb_uncheck_color="@color/md_grey_700"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_gravity="right"
-                    app:tb_circle_radius="14dp" />
+                    app:tb_check_bg_color="@color/md_blue_200"
+                    app:tb_check_color="@color/colorPrimary"
+                    app:tb_circle_radius="14dp"
+                    app:tb_uncheck_bg_color="@color/md_grey_400"
+                    app:tb_uncheck_color="@color/md_grey_700" />
             </FrameLayout>
 
             <View
-                android:layout_marginTop="@dimen/setting_devider_height"
-                android:layout_marginBottom="@dimen/setting_devider_height"
-                android:background="@color/md_grey_500"
                 android:layout_width="match_parent"
-                android:layout_height="1px"/>
+                android:layout_height="1px"
+                android:layout_marginBottom="@dimen/setting_devider_height"
+                android:layout_marginTop="@dimen/setting_devider_height"
+                android:background="@color/md_grey_500" />
 
             <Button
                 android:id="@+id/setting_alert_sound"
-                android:gravity="center_vertical|start"
-                android:drawableRight="@drawable/arrow_right_grey_48"
-                android:background="@null"
-                android:textSize="18sp"
-                android:text="提示声设置"
                 android:layout_width="match_parent"
-                android:layout_height="wrap_content" />
+                android:layout_height="wrap_content"
+                android:background="@null"
+                android:drawableRight="@drawable/arrow_right_grey_48"
+                android:gravity="center_vertical|start"
+                android:text="提示声设置"
+                android:textSize="18sp" />
 
             <View
-                android:layout_marginTop="@dimen/setting_devider_height"
-                android:layout_marginBottom="@dimen/setting_devider_height"
-                android:background="@color/md_grey_500"
                 android:layout_width="match_parent"
-                android:layout_height="1px"/>
+                android:layout_height="1px"
+                android:layout_marginBottom="@dimen/setting_devider_height"
+                android:layout_marginTop="@dimen/setting_devider_height"
+                android:background="@color/md_grey_500" />
 
         </LinearLayout>
     </ScrollView>
