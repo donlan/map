@@ -14,7 +14,6 @@ import com.baidu.mapapi.map.MapView;
 import com.baidu.mapapi.model.LatLng;
 
 import butterknife.BindView;
-import butterknife.ButterKnife;
 import butterknife.OnClick;
 import dong.lan.mapeye.R;
 import dong.lan.mapeye.common.LocationService;
@@ -33,6 +32,39 @@ public class AddRecordActivity extends BaseActivity implements AddRecordContract
 
     @BindView(R.id.mapView)
     MapView mapView;
+    @BindView(R.id.bar_center)
+    TextView tittleTv;
+    @BindView(R.id.bar_right)
+    TextView saveTv;
+    private AddRecordContract.Presenter presenter;
+    private BaiduMap baiduMap;
+    private BaiduMap.OnMapClickListener mapLongClickListener = new BaiduMap.OnMapClickListener() {
+        @Override
+        public void onMapClick(LatLng latLng) {
+            presenter.drawAndAddPoint(baiduMap, latLng);
+        }
+
+        @Override
+        public boolean onMapPoiClick(MapPoi mapPoi) {
+            return false;
+        }
+    };
+    private BitmapDescriptor locBitmap = BitmapDescriptorFactory.fromResource(R.drawable.tip);
+    private LocationService locationService;
+    private BDLocationListener locationListener = new BDLocationListener() {
+        @Override
+        public void onReceiveLocation(BDLocation bdLocation) {
+            if (bdLocation == null)
+                return;
+            MapUtils.setLocation(baiduMap, bdLocation, locBitmap);
+            locationService.stop();
+        }
+
+        @Override
+        public void onConnectHotSpotMessage(String s, int i) {
+
+        }
+    };
 
     @OnClick(R.id.reset_record)
     void resetRecord() {
@@ -63,37 +95,6 @@ public class AddRecordActivity extends BaseActivity implements AddRecordContract
     void back() {
         finish();
     }
-
-    @BindView(R.id.bar_center)
-    TextView tittleTv;
-    @BindView(R.id.bar_right)
-    TextView saveTv;
-
-    private BaiduMap.OnMapClickListener mapLongClickListener = new BaiduMap.OnMapClickListener() {
-        @Override
-        public void onMapClick(LatLng latLng) {
-            presenter.drawAndAddPoint(baiduMap, latLng);
-        }
-
-        @Override
-        public boolean onMapPoiClick(MapPoi mapPoi) {
-            return false;
-        }
-    };
-    private AddRecordContract.Presenter presenter;
-    private BaiduMap baiduMap;
-    private BitmapDescriptor locBitmap = BitmapDescriptorFactory.fromResource(R.drawable.tip);
-
-    private LocationService locationService;
-    private BDLocationListener locationListener = new BDLocationListener() {
-        @Override
-        public void onReceiveLocation(BDLocation bdLocation) {
-            if (bdLocation == null)
-                return;
-            MapUtils.setLocation(baiduMap, bdLocation, locBitmap);
-            locationService.stop();
-        }
-    };
 
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
