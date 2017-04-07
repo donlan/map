@@ -22,8 +22,7 @@ package dong.lan.mapeye.model.users;
 
 import android.text.TextUtils;
 
-
-import cn.jpush.im.android.api.model.*;
+import cn.jpush.im.android.api.model.UserInfo;
 import io.realm.RealmObject;
 
 /**
@@ -41,6 +40,7 @@ public class User extends RealmObject implements IUserInfo{
     private String headAvatar;
     private String nickname;
     private String remark;
+    private String bmobObjId;
 
     public User() {
     }
@@ -54,7 +54,41 @@ public class User extends RealmObject implements IUserInfo{
         remark = userInfo.getNotename();
     }
 
+    public static String getUserDescriber(UserInfo userProfile) {
+        if (userProfile == null) {
+            return "未知";
+        }
+        String identifier = userProfile.getUserName();
+        if (userProfile.getNickname() != null && !userProfile.getNickname().equals(""))
+            return identifier + "(" + userProfile.getNickname() + ")";
 
+        if (userProfile.getNotename() != null && !userProfile.getNotename().equals(""))
+            return identifier + "(" + userProfile.getNotename() + ")";
+
+        return identifier;
+    }
+
+    public static String getUserDescriber(IUserInfo userProfile) {
+        if (userProfile == null) {
+            return "未知";
+        }
+        String identifier = userProfile.username();
+        if (userProfile.nickname() != null && !userProfile.nickname().equals(""))
+            return identifier + "(" + userProfile.nickname() + ")";
+
+        if (userProfile.remark() != null && !userProfile.remark().equals(""))
+            return identifier + "(" + userProfile.remark() + ")";
+
+        return identifier;
+    }
+
+    public String getBmobObjId() {
+        return bmobObjId;
+    }
+
+    public void setBmobObjId(String bmobObjId) {
+        this.bmobObjId = bmobObjId;
+    }
 
     public String avatar() {
         return headAvatar;
@@ -109,7 +143,6 @@ public class User extends RealmObject implements IUserInfo{
         this.username = username;
     }
 
-
     public String displayName(){
         if(!TextUtils.isEmpty(remark))
             return remark;
@@ -117,36 +150,6 @@ public class User extends RealmObject implements IUserInfo{
             return nickname;
         if(!TextUtils.isEmpty(username))
             return username;
-        return identifier;
-    }
-
-
-    public static String getUserDescriber(UserInfo userProfile) {
-        if(userProfile == null) {
-            return "未知";
-        }
-        String identifier = userProfile.getUserName();
-        if (userProfile.getNickname() != null && !userProfile.getNickname().equals(""))
-            return identifier+"("+userProfile.getNickname()+")";
-
-        if (userProfile.getNotename() != null && !userProfile.getNotename().equals(""))
-            return identifier +"("+userProfile.getNotename()+")";
-
-        return identifier;
-    }
-
-
-    public static String getUserDescriber(IUserInfo userProfile) {
-        if(userProfile == null) {
-            return "未知";
-        }
-        String identifier = userProfile.username();
-        if (userProfile.nickname() != null && !userProfile.nickname().equals(""))
-            return identifier+"("+userProfile.nickname()+")";
-
-        if (userProfile.remark() != null && !userProfile.remark().equals(""))
-            return identifier +"("+userProfile.remark()+")";
-
         return identifier;
     }
 
