@@ -23,6 +23,7 @@ package dong.lan.mapeye.views;
 import android.os.Bundle;
 import android.text.TextUtils;
 import android.widget.CheckBox;
+import android.widget.EditText;
 import android.widget.TextView;
 
 import butterknife.BindView;
@@ -40,14 +41,21 @@ import io.realm.Realm;
 public class AddTimerTaskActivity extends BaseActivity {
 
 
+    @BindView(R.id.bar_center)
+    TextView tittle;
+    @BindView(R.id.timer_desc)
+    EditText descInput;
+    private long startTime;
+    private long endTime;
+    private boolean isRepeat;
+    private boolean isContinue;
+    private String recordId;
+    private String identifier;
+
     @OnClick(R.id.bar_left)
     void back() {
         finish();
     }
-
-    @BindView(R.id.bar_center)
-    TextView tittle;
-
 
     @OnCheckedChanged(R.id.timer_repeat_cb)
     void repeatCheck(CheckBox checkBox, boolean isCheck) {
@@ -69,6 +77,11 @@ public class AddTimerTaskActivity extends BaseActivity {
             return;
         }
 
+        if (TextUtils.isEmpty(descInput.getText().toString())) {
+            toast("定时任务描述不能为空");
+            return;
+        }
+
         alert("添加中...");
         Realm realm = Realm.getDefaultInstance();
         realm.beginTransaction();
@@ -78,6 +91,7 @@ public class AddTimerTaskActivity extends BaseActivity {
         task.setContinue(isContinue);
         task.setEndTime(endTime);
         task.setOpen(false);
+        task.setDesc(descInput.getText().toString());
         task.setRepeat(isRepeat);
         task.setStartTime(startTime);
         task.setRecord(realm.where(Record.class).equalTo("id", recordId).findFirst());
@@ -112,13 +126,6 @@ public class AddTimerTaskActivity extends BaseActivity {
         }).show();
 
     }
-
-    private long startTime;
-    private long endTime;
-    private boolean isRepeat;
-    private boolean isContinue;
-    private String recordId;
-    private String identifier;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
