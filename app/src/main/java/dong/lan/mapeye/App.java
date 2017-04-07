@@ -1,7 +1,6 @@
 package dong.lan.mapeye;
 
 import android.app.Application;
-import android.content.Context;
 
 import com.baidu.mapapi.SDKInitializer;
 import com.orhanobut.logger.Logger;
@@ -31,13 +30,13 @@ import io.realm.RealmSchema;
  * 日期：  7/2/2016  15:19.
  * Email: 760625325@qq.com
  */
-public class App extends Application {
+public class App extends Application implements DelayInit<String> {
 
 
     private static final String TAG = "App";
     private static App context;
 
-    public static Context getContext() {
+    public static App getContext() {
         return context;
     }
 
@@ -56,29 +55,34 @@ public class App extends Application {
                 .migration(new RealmMigration() {
                     @Override
                     public void migrate(DynamicRealm realm, long oldVersion, long newVersion) {
-                        if (oldVersion == 3) {
-                            RealmSchema schema = realm.getSchema();
-                            schema.get("Record").addField("radius", int.class);
-                            schema.remove("Location");
-                        }else if(oldVersion == 4){
-                            RealmSchema schema = realm.getSchema();
-                            schema.get("Contact").removeField("startMonitorTime")
-                                    .removeField("endMonitorTime")
-                                    .addField("startMonitorTime",long.class)
-                                    .addField("endMonitorTime",long.class);
+//                        if (oldVersion == 3) {
+//                            RealmSchema schema = realm.getSchema();
+//                            schema.get("Record").addField("radius", int.class);
+//                            schema.remove("Location");
+//                        }else if(oldVersion == 4){
+//                            RealmSchema schema = realm.getSchema();
+//                            schema.get("Contact").removeField("startMonitorTime")
+//                                    .removeField("endMonitorTime")
+//                                    .addField("startMonitorTime",long.class)
+//                                    .addField("endMonitorTime",long.class);
+//                        }if(newVersion ==5){
+//                            RealmSchema schema = realm.getSchema();
+//                            if(!schema.get("MonitorTimer").hasField("desc")) {
+//                                schema.get("MonitorTimer").addField("desc", String.class);
+//                            }
+//                        }
+                        RealmSchema schema = realm.getSchema();
+                        if (!schema.get("User").hasField("bmobObjId")) {
+                            schema.get("User").addField("bmobObjId", String.class);
                         }
                     }
                 })
-                .schemaVersion(5)
+                .schemaVersion(6)
                 .name("mapeye")
                 .build();
         Realm.setDefaultConfiguration(configuration);
         MonitorManager.instance().init(this);
-        SDKInitializer.initialize(this);
 
-        JMessageClient.setDebugMode(true);
-        JMessageClient.init(this, true);
-        JMessageClient.registerEventReceiver(this);
 
     }
 
@@ -114,4 +118,11 @@ public class App extends Application {
     }
 
 
+    @Override
+    public void start(String data) {
+        SDKInitializer.initialize(this);
+        JMessageClient.setDebugMode(true);
+        JMessageClient.init(this, true);
+        JMessageClient.registerEventReceiver(this);
+    }
 }
