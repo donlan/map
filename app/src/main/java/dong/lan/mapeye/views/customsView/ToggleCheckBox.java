@@ -21,10 +21,8 @@
 package dong.lan.mapeye.views.customsView;
 
 import android.content.Context;
-import android.graphics.Paint;
 import android.util.AttributeSet;
 import android.view.MotionEvent;
-import android.widget.CheckBox;
 
 /**
  * Created by 梁桂栋 on 16-12-21 ： 下午6:28.
@@ -33,7 +31,7 @@ import android.widget.CheckBox;
  * description: map
  */
 
-public class ToggleCheckBox extends CheckBox {
+public class ToggleCheckBox extends android.support.v7.widget.AppCompatCheckBox {
 
     public ToggleCheckBox(Context context) {
         this(context, null);
