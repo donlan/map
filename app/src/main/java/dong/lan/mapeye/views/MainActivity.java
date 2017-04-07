@@ -20,6 +20,7 @@ import cn.jpush.im.android.api.event.ContactNotifyEvent;
 import cn.jpush.im.android.api.event.LoginStateChangeEvent;
 import cn.jpush.im.android.api.model.UserInfo;
 import dong.lan.mapeye.R;
+import dong.lan.mapeye.bmob.BmobAction;
 import dong.lan.mapeye.common.UserManager;
 import dong.lan.mapeye.model.Affair;
 import dong.lan.mapeye.model.users.Contact;
@@ -95,8 +96,12 @@ public class MainActivity extends BaseActivity {
             SPHelper.putBoolean(KEY_IS_LOGIN, true);
         }
 
+
         UserManager.instance().initMe();
 
+        if (getIntent().getBooleanExtra("isRegister", false)) {
+            BmobAction.register(JMessageClient.getMyInfo());
+        }
         setSupportActionBar(toolbar);
         JMessageClient.registerEventReceiver(this);
         tabs = new Fragment[4];
