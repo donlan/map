@@ -22,6 +22,7 @@ package dong.lan.mapeye.bmob.bean;
 
 import cn.bmob.v3.BmobObject;
 import dong.lan.mapeye.model.users.IUserInfo;
+import dong.lan.mapeye.model.users.User;
 
 /**
  * Created by 梁桂栋 on 17-3-18 ： 下午7:36.
@@ -51,6 +52,17 @@ public class BUser extends BmobObject {
     }
 
 
+    public User toUser() {
+        User user = new User();
+        user.setBmobObjId(getObjectId());
+        user.setUsername(username);
+        user.setIdentifier(identifier);
+        user.setNickname(nickname);
+        user.setSex(sex);
+        user.setRemark(remark);
+        user.setHeadAvatar(headAvatar);
+        return user;
+    }
     public String getIdentifier() {
         return identifier;
     }
@@ -102,7 +114,8 @@ public class BUser extends BmobObject {
     @Override
     public String toString() {
         return "BUser{" +
-                "identifier='" + identifier + '\'' +
+                "objId=" + getObjectId() +
+                ", identifier='" + identifier + '\'' +
                 ", username='" + username + '\'' +
                 ", sex=" + sex +
                 ", headAvatar='" + headAvatar + '\'' +
