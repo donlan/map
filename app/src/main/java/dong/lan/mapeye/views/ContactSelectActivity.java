@@ -167,6 +167,7 @@ public class ContactSelectActivity extends BaseActivity {
         realm.close();
         if (adapter != null)
             adapter.destroy();
+        adapter = null;
         realm = null;
     }
 

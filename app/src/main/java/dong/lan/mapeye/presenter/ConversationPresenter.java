@@ -22,16 +22,13 @@ package dong.lan.mapeye.presenter;
 
 
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
 
 import cn.jpush.im.android.api.JMessageClient;
-import cn.jpush.im.android.api.enums.MessageDirect;
 import cn.jpush.im.android.api.model.Conversation;
 import dong.lan.mapeye.contracts.ConversationContract;
 import dong.lan.mapeye.model.conversation.IConversation;
 import dong.lan.mapeye.model.conversation.JConversation;
-import dong.lan.mapeye.model.message.IMessage;
 import dong.lan.mapeye.views.ConversationFragment;
 
 /**
@@ -44,12 +41,10 @@ import dong.lan.mapeye.views.ConversationFragment;
 public class ConversationPresenter implements ConversationContract.Presenter {
 
     private ConversationFragment view;
-    private HashMap<String, Integer> namePosition;
     private List<IConversation> conversations;
 
     public ConversationPresenter(ConversationFragment view) {
         this.view = view;
-        namePosition = new HashMap<>();
     }
 
 

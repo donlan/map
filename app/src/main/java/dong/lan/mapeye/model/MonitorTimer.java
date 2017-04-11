@@ -20,14 +20,7 @@
 
 package dong.lan.mapeye.model;
 
-import android.telephony.SignalStrength;
-
-import java.util.ArrayList;
-import java.util.Calendar;
-import java.util.List;
-
 import dong.lan.mapeye.model.users.User;
-import dong.lan.mapeye.utils.DateUtils;
 import io.realm.RealmObject;
 
 /**
@@ -39,6 +32,8 @@ import io.realm.RealmObject;
 
 public class MonitorTimer extends RealmObject {
 
+
+    private static final int DEFAULT_DELAY_TIME = 2000;
     private Record record;
     private User user;
     private long createTime;
@@ -47,24 +42,29 @@ public class MonitorTimer extends RealmObject {
     private boolean isRepeat;
     private boolean isContinue;
     private boolean isOpen;
+    private String desc;
 
+    public String getDesc() {
+        return desc;
+    }
+
+    public void setDesc(String desc) {
+        this.desc = desc;
+    }
 
     public long getTriggerTimeOfStart() {
         long curTime = System.currentTimeMillis();
-        if(curTime < startTime)
-            return startTime - curTime;
-
-        return startTime - curTime;
+        if (curTime < startTime)
+            return System.currentTimeMillis() + startTime - curTime + DEFAULT_DELAY_TIME;
+        return System.currentTimeMillis() + DEFAULT_DELAY_TIME;
     }
 
     public long getTriggerTimeOfEnd() {
         long curTime = System.currentTimeMillis();
-        if(curTime < endTime)
-            return endTime - curTime;
-
-        return endTime - curTime;
+        if (curTime < endTime)
+            return System.currentTimeMillis() + endTime - curTime + DEFAULT_DELAY_TIME;
+        return System.currentTimeMillis() + DEFAULT_DELAY_TIME;
     }
-
 
 
     public String tagString() {

@@ -28,6 +28,7 @@ import java.util.List;
 import cn.jpush.im.android.api.JMessageClient;
 import cn.jpush.im.android.api.callback.CreateGroupCallback;
 import dong.lan.mapeye.R;
+import dong.lan.mapeye.bmob.BmobAction;
 import dong.lan.mapeye.common.UserManager;
 import dong.lan.mapeye.contracts.AddRecordContract;
 import dong.lan.mapeye.events.MainEvent;
@@ -116,7 +117,7 @@ public class AddRecordPresenter implements AddRecordContract.Presenter {
                                         Realm realm = Realm.getDefaultInstance();
                                         realm.beginTransaction();
                                         User user = realm.where(User.class).equalTo("identifier", UserManager.instance().myIdentifier()).findFirst();
-                                        Record record = realm.createObject(Record.class);
+                                        Record record = new Record();
                                         record.setId(String.valueOf(groupId));
                                         record.setCreateTime(System.currentTimeMillis());
                                         record.setOwn(user);
@@ -129,18 +130,19 @@ public class AddRecordPresenter implements AddRecordContract.Presenter {
                                             Point point = new Point(points.get(i));
                                             record.getPoints().add(point);
                                         }
-                                        Group group = realm.createObject(Group.class);
+                                        realm.copyToRealmOrUpdate(record);
+                                        Group group = new Group();
                                         group.setOwner(user);
                                         group.setDescription(label);
                                         group.setGroupId(String.valueOf(groupId));
                                         group.setMembers(new RealmList<Contact>());
                                         realm.commitTransaction();
-                                        Record r = realm.copyFromRealm(record);
+                                        realm.copyToRealmOrUpdate(group);
                                         realm.close();
-                                        EventBus.getDefault().post(new MainEvent(MainEvent.CODE_ADDED_RECORD, r));
+                                        EventBus.getDefault().post(new MainEvent(MainEvent.CODE_ADDED_RECORD, record));
                                         view.toast("保存成功");
                                         dismissProgress();
-                                        //BmobAction.saveRecord(record, group);
+                                        BmobAction.saveRecord(record, group);
                                     } catch (Exception e) {
                                         e.printStackTrace();
                                         view.toast(e.getMessage());

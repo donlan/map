@@ -24,7 +24,6 @@ package dong.lan.mapeye.model.message;
 import cn.jpush.im.android.api.content.TextContent;
 import cn.jpush.im.android.api.enums.ContentType;
 import cn.jpush.im.android.api.enums.MessageDirect;
-import cn.jpush.im.android.api.event.ContactNotifyEvent;
 import cn.jpush.im.android.api.model.Message;
 
 /**
@@ -60,6 +59,8 @@ public class JGMessage implements IMessage {
 
     @Override
     public String content() {
+        if (message == null)
+            return "未知";
         ContentType type = message.getContentType();
         if (ContentType.text.equals(type)) {
             TextContent textContent = (TextContent) message.getContent();

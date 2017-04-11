@@ -12,9 +12,4 @@
         <item name="android:textColor">@color/tencent_tls_ui_titleFontColor</item>
     </style>
 
-    <style name="tencent_tls_ui_transparent">
-        <item name="android:windowBackground">@color/tencent_tls_ui_transparent</item>
-        <item name="android:windowIsTranslucent">true</item>
-        <item name="android:windowAnimationStyle">@android:style/Animation.Translucent</item>
-    </style>
 </resources>

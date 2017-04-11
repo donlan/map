@@ -64,7 +64,7 @@ import dong.lan.mapeye.utils.MapUtils;
 import dong.lan.mapeye.utils.TransitionUtil;
 import dong.lan.mapeye.views.MonitorTimerTaskActivity;
 import dong.lan.mapeye.views.customsView.Dialog;
-import dong.lan.mapeye.views.customsView.PinView;
+import dong.lan.mapeye.views.customsView.MapPinNumView;
 import dong.lan.mapeye.views.record.RecordDetailActivity;
 import io.realm.Realm;
 import io.realm.RealmChangeListener;
@@ -129,9 +129,8 @@ public class RecordDetailPresenter implements RecordDetailContract.Presenter {
                             points = new ArrayList<>();
                             points.addAll(TransitionUtil.Point2Latlng(record.getPoints()));
                             MapUtils.drawMarker(view.getMap(), points, view.getMarkerIcon());
-                            LatLng point;
-                            if (!points.isEmpty() && (point = points.get(0)) != null) {
-                                view.setRecordLocation(point);
+                            if (!points.isEmpty()) {
+                                view.setRecordLocation(points);
                                 view.drawRecord(points, record.getType(), record.getRadius());
                             }
                             final String id = record.getId();
@@ -162,6 +161,7 @@ public class RecordDetailPresenter implements RecordDetailContract.Presenter {
         group.addChangeListener(new RealmChangeListener<RealmModel>() {
             @Override
             public void onChange(RealmModel element) {
+
                 RecordDetailPresenter.this.view.refreshList();
             }
         });
@@ -300,7 +300,7 @@ public class RecordDetailPresenter implements RecordDetailContract.Presenter {
                     contact.deleteFromRealm();
                     realm.commitTransaction();
                     BmobAction.removeRecordMember(record.getId(), contact);
-//                        view.refreshList();
+                    view.refreshList();
                 }else{
                     view.toast(s);
                 }
@@ -319,10 +319,17 @@ public class RecordDetailPresenter implements RecordDetailContract.Presenter {
             Marker marker = markersMap.get(id);
             marker.setPosition(point);
         } else {
+            int pos = 0;
+            List<Contact> contacts = group.getMembers();
+            for (int i = 0; i < contacts.size(); i++) {
+                if (contacts.get(i).getId().equals(id)) {
+                    pos = i + 1;
+                    break;
+                }
+            }
             BitmapDescriptor icon = BitmapDescriptorFactory.fromView(
-                    new PinView(view, 0, Color.YELLOW, traceLocation.getDisplayName()));
-            Marker marker = MapUtils.drawMarker(view.getMap(), point, icon);
-            marker.setTitle(id);
+                    new MapPinNumView(view, String.valueOf(pos), Color.YELLOW, 18, Color.DKGRAY));
+            Marker marker = MapUtils.drawMarker(view.getMap(), point, icon, 0.5f, 1f);
             markersMap.put(id, marker);
         }
     }

@@ -90,6 +90,11 @@ public class CollectPointsActivity extends BaseActivity implements BDLocationLis
         setContent(bdLocation.getLatitude(),bdLocation.getLongitude());
     }
 
+    @Override
+    public void onConnectHotSpotMessage(String s, int i) {
+
+    }
+
 
     @Override
     protected void onDestroy() {

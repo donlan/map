@@ -22,6 +22,7 @@ package dong.lan.mapeye.task;
 
 import android.app.IntentService;
 import android.content.Intent;
+import android.text.TextUtils;
 
 import com.orhanobut.logger.Logger;
 
@@ -30,8 +31,8 @@ import cn.jpush.im.api.BasicCallback;
 import dong.lan.mapeye.common.JMCenter;
 import dong.lan.mapeye.common.MonitorManager;
 import dong.lan.mapeye.events.MonitorTaskEvent;
-import dong.lan.mapeye.model.users.Contact;
 import dong.lan.mapeye.model.message.CMDMessage;
+import dong.lan.mapeye.model.users.Contact;
 import io.realm.Realm;
 
 /**
@@ -43,10 +44,10 @@ import io.realm.Realm;
 
 public class MonitorStatusTask extends IntentService {
 
-    private static final int LIMIT = 10;
     public static final String KEY_MONITOR_ID = "monitor_id";
     public static final String KEY_MONITOR_NAME = "monitor_name";
     public static final String KEY_RECORD_ID = "record_id";
+    private static final int LIMIT = 10;
     private int tryCount = 0;
 
 
@@ -56,9 +57,10 @@ public class MonitorStatusTask extends IntentService {
 
     @Override
     protected void onHandleIntent(Intent intent) {
-        final long id = intent.getLongExtra(KEY_MONITOR_ID, 0);
+        final String id = intent.getStringExtra(KEY_MONITOR_ID);
         final String recordId = intent.getStringExtra(KEY_RECORD_ID);
-        if (id != 0) {
+        Logger.d(recordId);
+        if (!TextUtils.isEmpty(id)) {
             long time = System.currentTimeMillis();
             Realm realm = Realm.getDefaultInstance();
             while (tryCount < LIMIT) {

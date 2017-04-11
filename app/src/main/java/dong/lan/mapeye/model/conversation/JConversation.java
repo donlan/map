@@ -76,8 +76,8 @@ public class JConversation implements IConversation {
 
     @Override
     public long timestamp() {
-        return conversation == null ? System.currentTimeMillis() :
-                conversation.getLatestMessage().getCreateTime();
+        return conversation == null || conversation.getLatestMessage() == null ?
+                System.currentTimeMillis() : conversation.getLatestMessage().getCreateTime();
 
     }
 
@@ -132,7 +132,7 @@ public class JConversation implements IConversation {
     @Override
     public List<IMessage> loadMessage(int offset) {
         int PAGE_SIZE = 20;
-        Log.d(TAG, "loadMessage: "+conversation);
+        Log.d(TAG, "loadMessage: " + conversation);
         List<Message> messageList = conversation.getMessagesFromNewest(offset, PAGE_SIZE);
         Collections.sort(messageList, new Comparator<Message>() {
             @Override

@@ -1,14 +1,9 @@
 package dong.lan.mapeye.views;
 
 import android.content.Intent;
-import android.graphics.Canvas;
 import android.graphics.Color;
-import android.graphics.Paint;
-import android.graphics.Path;
-import android.graphics.Point;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
-import android.support.v7.app.AppCompatActivity;
 import android.widget.TextView;
 
 import com.baidu.location.BDLocation;
@@ -20,9 +15,7 @@ import com.baidu.mapapi.map.BitmapDescriptorFactory;
 import com.baidu.mapapi.map.MapView;
 import com.baidu.mapapi.map.MyLocationConfiguration;
 import com.baidu.mapapi.map.MyLocationData;
-import com.baidu.mapapi.map.Overlay;
 import com.baidu.mapapi.map.PolylineOptions;
-import com.baidu.mapapi.map.Projection;
 import com.baidu.mapapi.model.LatLng;
 import com.baidu.mapapi.utils.DistanceUtil;
 
@@ -52,6 +45,37 @@ public class TrackActivity extends BaseActivity {
     TextView text;
     @BindView(R.id.track_start)
     CircleTextView trackStartTV;
+    @BindView(R.id.mapView)
+    MapView mapView;
+    Unbinder unbinder;
+    LocationService locationService;
+    BitmapDescriptor curLocationBD;
+    BaiduMap map;
+    List<LatLng> points = new ArrayList<>();
+    int count = 0;
+    BDLocationListener locationListener = new BDLocationListener() {
+        @Override
+        public void onReceiveLocation(BDLocation bdLocation) {
+            //text.setText(LocationHelper.getLocationInfo(bdLocation));
+            if (bdLocation != null && mapView != null) {
+                MyLocationData mld = new MyLocationData.Builder()
+                        .latitude(bdLocation.getLatitude())
+                        .longitude(bdLocation.getLongitude())
+                        .direction(bdLocation.getDirection())
+                        .speed(bdLocation.getSpeed())
+                        .build();
+                map.setMyLocationData(mld);
+                addPoint(new LatLng(bdLocation.getLatitude(), bdLocation.getLongitude()));
+
+            }
+        }
+
+        @Override
+        public void onConnectHotSpotMessage(String s, int i) {
+
+        }
+    };
+
     @OnClick(R.id.track_start)
     public void trackStart() {
         locationService.start();
@@ -68,16 +92,6 @@ public class TrackActivity extends BaseActivity {
         locationService.stop();
     }
 
-    @BindView(R.id.mapView)
-    MapView mapView;
-
-
-    Unbinder unbinder;
-    LocationService locationService;
-
-    BitmapDescriptor curLocationBD;
-    BaiduMap map;
-    List<LatLng> points = new ArrayList<>();
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -85,7 +99,6 @@ public class TrackActivity extends BaseActivity {
         unbinder = ButterKnife.bind(this);
         init();
     }
-
 
     private void init(){
         locationService = new LocationService(getApplicationContext());
@@ -96,25 +109,6 @@ public class TrackActivity extends BaseActivity {
         map.setMyLocationConfigeration(new MyLocationConfiguration(MyLocationConfiguration.LocationMode.FOLLOWING,true,curLocationBD));
     }
 
-
-    BDLocationListener locationListener = new BDLocationListener() {
-        @Override
-        public void onReceiveLocation(BDLocation bdLocation) {
-            //text.setText(LocationHelper.getLocationInfo(bdLocation));
-            if(bdLocation!=null && mapView!=null){
-                MyLocationData mld = new MyLocationData.Builder()
-                        .latitude(bdLocation.getLatitude())
-                        .longitude(bdLocation.getLongitude())
-                        .direction(bdLocation.getDirection())
-                        .speed(bdLocation.getSpeed())
-                        .build();
-                map.setMyLocationData(mld);
-                addPoint(new LatLng(bdLocation.getLatitude(),bdLocation.getLongitude()));
-
-            }
-        }
-    };
-    int count = 0;
     private void addPoint(LatLng point){
         if(points.isEmpty()) {
             points.add(point);

@@ -50,9 +50,6 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
-
-
-
         <activity android:name=".views.UserCenterActivity" />
         <activity android:name=".views.AffairHandleActivity" />
         <activity
@@ -86,7 +83,6 @@
             </intent-filter>
         </receiver>
 
-
         <!-- 百度地图start -->
         <service
             android:name="com.baidu.location.f"
@@ -103,8 +99,7 @@
         <!-- 百度地图end -->
 
 
-
-        <!-- Required SDK 核心功能-->
+        <!-- Required SDK 核心功能 -->
         <!-- 可配置android:process参数将PushService放在其他进程中 -->
         <service
             android:name="cn.jpush.android.service.PushService"
@@ -118,13 +113,14 @@
             </intent-filter>
         </service>
 
-        <!-- Required SDK核心功能-->
+        <!-- Required SDK核心功能 -->
         <receiver
             android:name="cn.jpush.android.service.PushReceiver"
             android:enabled="true"
             android:exported="false">
             <intent-filter android:priority="1000">
                 <action android:name="cn.jpush.android.intent.NOTIFICATION_RECEIVED_PROXY" />
+
                 <category android:name="dong.lan.mapeye" />
             </intent-filter>
             <intent-filter>
@@ -140,12 +136,12 @@
             </intent-filter>
         </receiver>
 
-        <!-- Required SDK核心功能-->
+        <!-- Required SDK核心功能 -->
         <receiver
             android:name="cn.jpush.android.service.AlarmReceiver"
             android:exported="false" />
 
-        <!-- Required JMessage SDK核心功能-->
+        <!-- Required JMessage SDK核心功能 -->
         <receiver
             android:name="cn.jpush.im.android.helpers.IMReceiver"
             android:enabled="true"
@@ -159,11 +155,11 @@
         </receiver>
 
         <!-- Required. For publish channel feature -->
-        <!-- JPUSH_CHANNEL 是为了方便开发者统计APK分发渠道。-->
+        <!-- JPUSH_CHANNEL 是为了方便开发者统计APK分发渠道。 -->
         <!-- 例如: -->
         <!-- 发到 Google Play 的APK可以设置为 google-play; -->
         <!-- 发到其他市场的 APK 可以设置为 xxx-market。 -->
-        <!-- 目前这个渠道统计功能的报表还未开放。-->
+        <!-- 目前这个渠道统计功能的报表还未开放。 -->
         <meta-data
             android:name="JPUSH_CHANNEL"
             android:value="developer-default" />
@@ -172,8 +168,6 @@
         <meta-data
             android:name="JPUSH_APPKEY"
             android:value="daf5f5067293302d1db01752" />
-
-
 
         <activity android:name=".views.SettingActivity" />
         <activity android:name=".views.MonitorRecordActivity" />
@@ -187,6 +181,15 @@
         </activity>
         <activity android:name=".views.MonitorTimerTaskActivity" />
         <activity android:name=".views.AddTimerTaskActivity" />
+
+        <receiver
+            android:name=".TimerTaskReceiver"
+            android:enabled="true"
+            android:exported="false" />
+
+        <activity
+            android:name=".task.TimerHandlerActivity"
+            android:parentActivityName=".views.MainActivity" />
     </application>
 
 </manifest>

@@ -10,9 +10,9 @@ import com.baidu.mapapi.model.LatLng;
 
 import java.util.List;
 
-import dong.lan.mapeye.model.users.Contact;
 import dong.lan.mapeye.model.Record;
 import dong.lan.mapeye.model.TraceLocation;
+import dong.lan.mapeye.model.users.Contact;
 
 /**
  * Created by 梁桂栋 on 16-11-10 ： 下午7:15.
@@ -55,9 +55,9 @@ public final class RecordDetailContract {
         /**
          * 将地图定位到指定点
          *
-         * @param point Record中的第一个点
+         * @param points Record中的第一个点
          */
-        void setRecordLocation(LatLng point);
+        void setRecordLocation(List<LatLng> points);
 
         /**
          * 在地图上绘制围栏
@@ -184,7 +184,7 @@ public final class RecordDetailContract {
         /**
          * 处理发送过来的位置信息
          *
-         * @param msg 消息类型为位置信息的消息
+         * @param traceLocation 消息类型为位置信息的消息
          */
         void handlerLocationMessage(TraceLocation traceLocation);
 
