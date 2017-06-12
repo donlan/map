@@ -154,10 +154,10 @@ public class MonitorTimerTaskActivity extends BaseActivity {
             viewHolder.timerRecordInfo.setText(value.getRecord().getLabel());
             viewHolder.timerRepeat.setText(value.tagString());
 
-            if (value.getEndTime() < System.currentTimeMillis()) {
-                viewHolder.timerSwitcher.setChecked(false);
-                viewHolder.timerSwitcher.setVisibility(View.GONE);
-            }
+//            if (value.getEndTime() < System.currentTimeMillis()) {
+//                viewHolder.timerSwitcher.setChecked(false);
+//                viewHolder.timerSwitcher.setVisibility(View.GONE);
+//            }
             viewHolder.info.setText(value.getDesc());
             viewHolder.timeInfo.setText(DateUtils.getTime(value.getCreateTime(), "创建时间: yyyy.MM.dd HH:mm"));
             viewHolder.timerSwitcher.setChecked(value.isOpen());

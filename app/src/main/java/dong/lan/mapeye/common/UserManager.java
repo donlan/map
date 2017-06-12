@@ -1,7 +1,5 @@
 package dong.lan.mapeye.common;
 
-import android.util.Log;
-
 import com.orhanobut.logger.Logger;
 
 import java.util.List;
@@ -10,10 +8,10 @@ import cn.jpush.im.android.api.JMessageClient;
 import cn.jpush.im.android.api.model.UserInfo;
 import cn.jpush.im.api.BasicCallback;
 import dong.lan.mapeye.bmob.BmobAction;
+import dong.lan.mapeye.bmob.bean.BUser;
 import dong.lan.mapeye.contracts.RecordDetailContract;
 import dong.lan.mapeye.model.message.IMessage;
 import dong.lan.mapeye.model.users.Contact;
-import dong.lan.mapeye.model.users.Contacts;
 import dong.lan.mapeye.model.users.Group;
 import dong.lan.mapeye.model.users.IUserInfo;
 import dong.lan.mapeye.model.users.User;
@@ -38,7 +36,6 @@ public class UserManager {
     private static UserManager manager;
     private IUserInfo userInfo;
     private Realm realm;
-    private Contacts contacts;
     private User user;
 
 
@@ -84,99 +81,15 @@ public class UserManager {
     }
 
 
-    public void updateUserAvatar(String path) {
-        // // TODO: 16-12-20 用户头像
-    }
-
-
-    /**
-     * 保存联系人信息到Realm中
-     *
-     * @param userInfos 所有的联系人
-     * @param realm     提供的realm实例
-     * @return 返回保存所有联系人后的Contacts
-     */
-    public Contacts saveContacts(List<UserInfo> userInfos, Realm realm) {
-        String identifier = userInfo.identifier();
-        realm.beginTransaction();
-        contacts = realm.where(Contacts.class).equalTo("owner.identifier", identifier).findFirst();
-        if (contacts == null) {
-            contacts = realm.createObject(Contacts.class);
-            if (user.isManaged()) {
-                contacts.setOwner(user);
-            } else {
-                contacts.setOwner(realm.where(User.class).equalTo("identifier", user.identifier()).findFirst());
-            }
-        }
-        for (UserInfo userInfo : userInfos) {
-            User user = realm.createObject(User.class);
-            user.setUsername(userInfo.getUserName());
-            user.setIdentifier(userInfo.getUserName());
-            user.setRemark(userInfo.getNotename());
-            user.setHeadAvatar(userInfo.getAvatar());
-            user.setNickname(userInfo.getNickname());
-            user.setSex(userInfo.getGender() == UserInfo.Gender.male ? 1 : 0);
-
-            if (contacts.getContacts() == null) {
-                RealmList<User> users = new RealmList<>();
-                users.add(user);
-                contacts.setContacts(users);
-            } else {
-                contacts.getContacts().add(user);
-            }
-        }
-        realm.commitTransaction();
-        return contacts;
-    }
-
-    /**
-     * 使用默认的realm查找当前用户的所有联系人
-     *
-     * @return 所有联系人
-     */
-    public Contacts getContacts() {
-        if (contacts == null) {
-            checkRealm();
-            realm.beginTransaction();
-            contacts = realm.where(Contacts.class).equalTo("owner.identifier", userInfo.identifier()).findFirst();
-            realm.commitTransaction();
-        }
-        return contacts;
-    }
-
-    /**
-     * 缓存查到到联系人到内存
-     *
-     * @param contacts 需要设置的联系人信息
-     */
-    public void setContacts(Contacts contacts) {
-        this.contacts = contacts;
-    }
-
-    /**
-     * 使用提供的realm查找当前用户的所有联系人
-     *
-     * @param realm 提供的额realm实例
-     * @return 所有联系人
-     */
-    public Contacts getContacts(Realm realm) {
-        Contacts contacts = null;
-        contacts = Realm.getDefaultInstance().where(Contacts.class)
-                .equalTo("owner.identifier", userInfo.identifier()).findFirstAsync();
-        return contacts;
-    }
-
-
     /**
      * @return 已登陆则返回true，否则返回false
      */
     public boolean isLogin() {
-        return SPHelper.getBoolean(KEY_IS_LOGIN) && JMessageClient.getMyInfo() != null;
+        return BUser.getCurrentUser() != null && JMessageClient.getMyInfo() != null;
     }
 
 
     public void login(String phone, BasicCallback callback) {
-        Log.d(TAG, "login: " + phone);
         JMessageClient.login(phone, Secure.encode(phone), callback);
     }
 
@@ -190,6 +103,7 @@ public class UserManager {
         JMessageClient.logout();
         SPHelper.put("USER", "");
         SPHelper.putBoolean(KEY_IS_LOGIN, false);
+        BUser.logOut();
         return true;
     }
 
@@ -254,42 +168,41 @@ public class UserManager {
      * 添加新的用户到指定群组中
      *
      * @param groupId 群组的id
-     * @param users   新添加的用户
+     * @param ids   新添加的用户
      */
-    public void addGroupMembers(String groupId, List<User> users, Realm realm) {
-        Group group = null;
-        realm.beginTransaction();
-        group = realm.where(Group.class).equalTo("groupId", groupId).findFirst();
-        if (group != null) {
-            for (User user :
-                    users) {
-                if (user.identifier().equals(myIdentifier()))
-                    continue;
-                RealmList<Contact> contacts = group.getMembers();
-                boolean canAdd = true; //防止重复添加
-                for (Contact contact : contacts) {
-                    if (contact.getId().equals(Contact.createId(groupId, user.identifier()))) {
-                        canAdd = false;
-                        break;
+    public void addGroupMembers(final String groupId, final List<String> ids) {
+        Realm.getDefaultInstance().executeTransactionAsync(new Realm.Transaction() {
+            @Override
+            public void execute(Realm realm) {
+                Group group = realm.where(Group.class).equalTo("groupId", groupId).findFirst();
+                if (group != null) {
+                    for (String id :
+                            ids) {
+                        if (id.equals(myIdentifier()))
+                            continue;
+                        RealmList<Contact> contacts = group.getMembers();
+                        boolean canAdd = true; //防止重复添加
+                        for (Contact contact : contacts) {
+                            if (contact.getId().equals(Contact.createId(groupId, id))) {
+                                canAdd = false;
+                                break;
+                            }
+                        }
+                        if (canAdd) {
+                            Contact contact = new Contact();
+                            contact.setUser(realm.where(User.class).equalTo("identifier", id).findFirst());
+                            contact.setTag(Contact.TAG_ADDING);
+                            contact.setStatus(Contact.STATUS_WAITING);
+                            contact.setId(Contact.createId(groupId, id));
+                            contact.setRepeatMonitor(false);
+                            group.getMembers().add(contact);
+                            BmobAction.addContact(group);
+                        }
                     }
                 }
-                if (canAdd) {
-                    Contact contact = new Contact();
-                    contact.setUser(realm.where(User.class).equalTo("identifier", user.identifier()).findFirst());
-                    contact.setTag(Contact.TAG_ADDING);
-                    contact.setStatus(Contact.STATUS_WAITING);
-                    contact.setId(Contact.createId(groupId, user.identifier()));
-                    contact.setRepeatMonitor(false);
-                    group.getMembers().add(contact);
-
-                    BmobAction.addContact(group);
-                }
             }
-        }
-        Logger.d("" + group);
-        realm.commitTransaction();
+        });
     }
-
 
     public void updateContactTag(IMessage msg, final int tag) {
         final String recordId = msg.getStringExtra(JMCenter.EXTRAS_RECORD_ID);
@@ -365,34 +278,16 @@ public class UserManager {
         MonitorManager.instance().post(RecordDetailContract.RecordDetailView.REFRESH);
     }
 
-    public void addContact(UserInfo userInfo) {
-        Realm realm = Realm.getDefaultInstance();
-        realm.beginTransaction();
-        User user = realm.createObject(User.class);
-        user.setIdentifier(String.valueOf(userInfo.getUserID()));
-        user.setUsername(User.getUserDescriber(userInfo));
-        user.setNickname(userInfo.getNickname());
-        user.setRemark(userInfo.getNotename());
-        user.setHeadAvatar(userInfo.getAvatar());
-        if (contacts.getContacts() == null) {
-            RealmList<User> users = new RealmList<>();
-            users.add(user);
-            contacts.setContacts(users);
-        } else {
-            contacts.getContacts().add(user);
-        }
-        realm.commitTransaction();
-    }
 
     public void initMe() {
-        final UserInfo userInfo = JMessageClient.getMyInfo();
         realm.executeTransaction(new Realm.Transaction() {
             @Override
             public void execute(Realm realm) {
+                UserInfo userInfo = JMessageClient.getMyInfo();
                 user = realm.where(User.class).equalTo("identifier", userInfo.getUserName()).findFirst();
                 if (user == null) {
                     user = new User(userInfo);
-                    realm.copyToRealm(user);
+                    realm.copyToRealmOrUpdate(user);
                 }
                 if (user.isManaged())
                     UserManager.this.userInfo = realm.copyFromRealm(user);
@@ -400,8 +295,6 @@ public class UserManager {
                     UserManager.this.userInfo = user;
                 }
                 SPHelper.put("USER", MessageHelper.getInstance().toJson(userInfo));
-
-                Logger.d(userInfo);
             }
         });
 
@@ -426,5 +319,13 @@ public class UserManager {
                 }
             });
         }
+        UserInfo userInfo = JMessageClient.getMyInfo();
+        userInfo.setRegion(s);
+        JMessageClient.updateMyInfo(UserInfo.Field.region, userInfo, new BasicCallback() {
+            @Override
+            public void gotResult(int i, String s) {
+
+            }
+        });
     }
 }

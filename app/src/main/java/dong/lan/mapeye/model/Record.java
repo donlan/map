@@ -1,10 +1,15 @@
 package dong.lan.mapeye.model;
 
+import com.baidu.mapapi.model.LatLng;
+
 import java.io.Serializable;
+import java.util.ArrayList;
+import java.util.List;
 
 import dong.lan.mapeye.model.users.User;
 import io.realm.RealmList;
 import io.realm.RealmObject;
+import io.realm.annotations.Ignore;
 import io.realm.annotations.PrimaryKey;
 
 /**
@@ -35,6 +40,19 @@ public class Record extends RealmObject implements Serializable {
     private RealmList<Point> points;    //包含的所有位置点
     private RealmList<User> users;      //目前无使用.....
 
+    @Ignore
+    private List<LatLng> latLngs;
+
+    public List<LatLng> getLatLngPoints() {
+        if (latLngs == null) {
+            latLngs = new ArrayList<>(points.size());
+            for (int i = 0; i < points.size(); i++) {
+                latLngs.add(new LatLng(points.get(i).getLat(), points.get(i).getLng()));
+            }
+        }
+        return latLngs;
+    }
+
     public static String getRecordTypeStr(int type) {
         if (type == TYPE_FENCE)
             return "围栏";
@@ -50,6 +68,7 @@ public class Record extends RealmObject implements Serializable {
     public String recordTittleInfo() {
         return "[" + getRecordTypeStr(type) + "]" + label;
     }
+
     public String getId() {
         return id;
     }

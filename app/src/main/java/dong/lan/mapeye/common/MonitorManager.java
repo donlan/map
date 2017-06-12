@@ -45,6 +45,7 @@ import java.util.LinkedList;
 
 import cn.jpush.im.android.api.model.Message;
 import cn.jpush.im.api.BasicCallback;
+import dong.lan.mapeye.App;
 import dong.lan.mapeye.R;
 import dong.lan.mapeye.TimerTaskReceiver;
 import dong.lan.mapeye.model.Affair;
@@ -201,6 +202,8 @@ public class MonitorManager {
             if (defaultRealm != null) {
                 defaultRealm.beginTransaction();
                 monitorRecode.getLocations().add(traceLocation);
+                if (monitorRecode.getCreateTime() == 0)
+                    monitorRecode.setCreateTime(System.currentTimeMillis());
                 defaultRealm.commitTransaction();
             }
         }
@@ -217,10 +220,10 @@ public class MonitorManager {
         double curSpeed = 0;
         LocationEntity newLocation = new LocationEntity();
         if (locationList.isEmpty() || locationList.size() < 2) {
-            LocationEntity temp = new LocationEntity();
-            temp.location = location;
-            temp.time = System.currentTimeMillis();
-            locationList.add(temp);
+            newLocation.iscalculate = false;
+            newLocation.location = location;
+            newLocation.time = System.currentTimeMillis();
+            locationList.add(newLocation);
         } else {
             if (locationList.size() > 5)
                 locationList.removeFirst();
@@ -244,15 +247,10 @@ public class MonitorManager {
             } else {
                 newLocation.iscalculate = false;
             }
-
             newLocation.location = location;
             newLocation.time = System.currentTimeMillis();
             locationList.add(newLocation);
-
         }
-        newLocation.iscalculate = false;
-        newLocation.location = location;
-        newLocation.time = System.currentTimeMillis();
         return newLocation;
     }
 
@@ -267,19 +265,21 @@ public class MonitorManager {
         int type = record.getType();
         boolean in = false;
         if (type == Record.TYPE_FENCE) {
-            in = !PolygonHelper.isPointInPolygon(record.getPoints(),
-                    traceLocation.getLatitude(),
-                    traceLocation.getLongitude());
+            in = PolygonHelper.isPointInPolygon(record.getLatLngPoints(),
+                    new LatLng(traceLocation.getLatitude(),
+                            traceLocation.getLongitude()));
         } else if (type == Record.TYPE_ROUTE) {
-            in = PolygonHelper.isOnRoute(record.getPoints(),
+            in = PolygonHelper.isOnRoute(record.getLatLngPoints(),
                     traceLocation.getLatitude(),
-                    traceLocation.getLongitude());
+                    traceLocation.getLongitude(),
+                    (int) traceLocation.getRadius());
         } else if (type == Record.TYPE_CIRCLE) {
             in = PolygonHelper.isInCircleFence(record.getPoints().get(0),
                     new LatLng(traceLocation.getLatitude(), traceLocation.getLongitude()),
                     (int) traceLocation.getRadius(),
                     record.getRadius());
         }
+        Logger.d(in);
         return in;
     }
 
@@ -346,6 +346,7 @@ public class MonitorManager {
             @Override
             public void execute(Realm realm) {
                 Affair affair = realm.createObject(Affair.class);
+                affair.setOwner(UserManager.instance().myIdentifier());
                 affair.setType(Affair.TYPE_MONITOR_BIND);
                 affair.setContent(text);
                 affair.setCreatedTime(message.timestamp());
@@ -353,7 +354,6 @@ public class MonitorManager {
                 affair.setHandle(Affair.HANDLE_NO);
                 affair.setId(message.id());
                 affair.setExtras(extras);
-                realm.commitTransaction();
                 bus.onNext(affair);
                 Intent toAffair = new Intent(context, AffairHandleActivity.class);
                 toAffair.setFlags(Intent.FLAG_ACTIVITY_SINGLE_TOP);
@@ -379,10 +379,11 @@ public class MonitorManager {
     /**
      * 停止定位服务
      */
-    public void stopMonitorLocation() {
+    public void stopMonitorLocation(String recordId, String identifier) {
         if (locationService != null)
             locationService.stop();
         locationList.clear();
+        TraceManager.get().stop(recordId + "_" + identifier);
     }
 
     private boolean isCmdValid(long timestamp) {
@@ -412,6 +413,8 @@ public class MonitorManager {
                 }
             }
         });
+
+        TraceManager.get().start(App.getContext(), recordId + "_" + identifier);
     }
 
     private void beginLocating(final String recordId, final String identifier, final String toUserId) {
@@ -532,11 +535,11 @@ public class MonitorManager {
         timer.setOpen(isChecked);
         realm.commitTransaction();
 
-        Logger.d(timer);
-        AlarmManager alarmManager = (AlarmManager) context.getSystemService(Context.ALARM_SERVICE);
+        AlarmManager startAlarmManager = (AlarmManager) context.getSystemService(Context.ALARM_SERVICE);
+        AlarmManager endAlarmManagere = (AlarmManager) context.getSystemService(Context.ALARM_SERVICE);
 
         Intent timerIntent = new Intent(context, TimerTaskReceiver.class);
-        timerIntent.putExtra(Config.TIMER_STATUS, isChecked);
+        timerIntent.putExtra(Config.TIMER_STATUS, true);
         timerIntent.putExtra(Config.TIMER_TASK_ID, timer.getCreateTime());
         timerIntent.putExtra(Config.KEY_RECORD_ID, timer.getRecord().getId());
         timerIntent.putExtra(Config.KEY_IDENTIFIER, timer.getUser().identifier());
@@ -545,20 +548,25 @@ public class MonitorManager {
                 context, timer.hashCode(), timerIntent, PendingIntent.FLAG_UPDATE_CURRENT);
 
         Intent endTimerIntent = new Intent(context, TimerTaskReceiver.class);
-        endTimerIntent.putExtra(Config.TIMER_STATUS, isChecked);
+        endTimerIntent.putExtra(Config.TIMER_STATUS, false);
         endTimerIntent.putExtra(Config.TIMER_TASK_ID, timer.getCreateTime());
         endTimerIntent.putExtra(Config.KEY_RECORD_ID, timer.getRecord().getId());
         endTimerIntent.putExtra(Config.KEY_IDENTIFIER, timer.getUser().identifier());
 
         PendingIntent endPending = PendingIntent.getBroadcast(
-                context, timer.hashCode(), endTimerIntent, PendingIntent.FLAG_UPDATE_CURRENT);
+                context, timer.hashCode() + 1, endTimerIntent, PendingIntent.FLAG_UPDATE_CURRENT);
 
-        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.KITKAT) {
-            alarmManager.set(AlarmManager.RTC_WAKEUP, timer.getTriggerTimeOfStart(), startPending);
-            alarmManager.set(AlarmManager.RTC_WAKEUP, timer.getTriggerTimeOfEnd(), endPending);
+        if (isChecked) {
+            if (Build.VERSION.SDK_INT < Build.VERSION_CODES.KITKAT) {
+                startAlarmManager.set(AlarmManager.RTC_WAKEUP, timer.getTriggerTimeOfStart(), startPending);
+                endAlarmManagere.set(AlarmManager.RTC_WAKEUP, timer.getTriggerTimeOfEnd(), endPending);
+            } else {
+                startAlarmManager.setExact(AlarmManager.RTC_WAKEUP, timer.getTriggerTimeOfStart(), startPending);
+                endAlarmManagere.setExact(AlarmManager.RTC_WAKEUP, timer.getTriggerTimeOfEnd(), endPending);
+            }
         } else {
-            alarmManager.setExact(AlarmManager.RTC_WAKEUP, timer.getTriggerTimeOfStart(), startPending);
-            alarmManager.setExact(AlarmManager.RTC_WAKEUP, timer.getTriggerTimeOfEnd(), endPending);
+            startAlarmManager.cancel(startPending);
+            endAlarmManagere.cancel(endPending);
         }
 
 
@@ -594,11 +602,15 @@ public class MonitorManager {
                 Logger.d(i + "," + s);
                 if (i == 0) {
                     toast("发送定位结束指令成功");
-                    if (realm != null && !realm.isClosed()) {
-                        realm.beginTransaction();
-                        contact.setStatus(Contact.STATUS_NONE);
-                        realm.commitTransaction();
-                    }
+                    Realm.getDefaultInstance().executeTransactionAsync(new Realm.Transaction() {
+                        @Override
+                        public void execute(Realm realm) {
+                            Contact c = realm.where(Contact.class)
+                                    .equalTo("id",id).findFirst();
+                            if(c!=null)
+                                c.setStatus(Contact.STATUS_NONE);
+                        }
+                    });
                     MonitorManager.instance().removeMonitor(id);
                 }
             }
@@ -635,10 +647,13 @@ public class MonitorManager {
             toast("当前用户正在位置监听");
             return;
         }
+        final String recordId = record.getId();
+        final String label = record.getLabel();
         User user = contact.getUser();
         final String id = contact.getId();
         final long mrId = MonitorRecode.createId(id, System.currentTimeMillis());
         toast("开始发送定位指令给 " + user.displayName());
+
 
         Message jmesage = new JMCenter.JMessage(CMDMessage.CMD_MONITOR_START,
                 user.username(), "开始监听")
@@ -647,26 +662,34 @@ public class MonitorManager {
         JMCenter.sendMessage(jmesage, new BasicCallback() {
             @Override
             public void gotResult(int i, String s) {
-                Logger.d(i + "," + s);
                 if (i == 0) {
-                    if (realm != null && !realm.isClosed()) {
-                        realm.beginTransaction();
-                        contact.setStatus(Contact.STATUS_WAITING);
-                        MonitorRecode monitorRecode = realm.createObject(MonitorRecode.class);
-                        monitorRecode.setId(mrId);
-                        monitorRecode.setCreateTime(System.currentTimeMillis());
-                        monitorRecode.setMonitoredUser(contact.getUser());
-                        monitorRecode.setRecord(record);
-                        monitorRecode.setLocations(new RealmList<TraceLocation>());
-                        realm.commitTransaction();
-                        addMonitor(id, record, monitorRecode);
-                        Intent monitorTask = new Intent(context, MonitorStatusTask.class);
-                        monitorTask.putExtra(MonitorStatusTask.KEY_RECORD_ID, record.getId());
-                        monitorTask.putExtra(MonitorStatusTask.KEY_MONITOR_NAME, record.getLabel());
-                        monitorTask.putExtra(MonitorStatusTask.KEY_MONITOR_ID, id);
-                        context.startService(monitorTask);
-                        toast("发送定位指令成功");
-                    }
+                    Realm.getDefaultInstance().executeTransactionAsync(new Realm.Transaction() {
+                        @Override
+                        public void execute(Realm realm) {
+                            Contact c = realm.where(Contact.class)
+                                    .equalTo("id",id).findFirst();
+                            Record r = realm.where(Record.class)
+                                    .equalTo("id",recordId)
+                                    .findFirst();
+                            if(c!=null) {
+                                c.setStatus(Contact.STATUS_WAITING);
+                                MonitorRecode monitorRecode = realm.createObject(MonitorRecode.class);
+                                monitorRecode.setId(mrId);
+                                monitorRecode.setCreateTime(0);
+                                monitorRecode.setMonitoredUser(c.getUser());
+                                monitorRecode.setRecord(r);
+                                monitorRecode.setLocations(new RealmList<TraceLocation>());
+                                addMonitor(id, r, monitorRecode);
+                            }
+                        }
+                    });
+
+                    Intent monitorTask = new Intent(context, MonitorStatusTask.class);
+                    monitorTask.putExtra(MonitorStatusTask.KEY_RECORD_ID, recordId);
+                    monitorTask.putExtra(MonitorStatusTask.KEY_MONITOR_NAME, label);
+                    monitorTask.putExtra(MonitorStatusTask.KEY_MONITOR_ID, id);
+                    context.startService(monitorTask);
+                    toast("发送定位指令成功");
                 }
             }
         });

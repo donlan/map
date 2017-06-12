@@ -31,13 +31,11 @@ import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.TextView;
 
-
+import com.bumptech.glide.Glide;
 
 import butterknife.BindView;
 import butterknife.OnClick;
 import butterknife.OnTextChanged;
-import cn.jpush.im.android.api.JMessageClient;
-import cn.jpush.im.android.api.model.UserInfo;
 import dong.lan.library.LabelTextView;
 import dong.lan.mapeye.R;
 import dong.lan.mapeye.common.Config;
@@ -161,6 +159,7 @@ public class UserCenterActivity extends BaseActivity implements UserCenterContra
 
     @Override
     public void refreshAvatar(Bitmap bitmap) {
+        if (bitmap !=null)
         userHead.setImageBitmap(bitmap);
     }
 
@@ -172,15 +171,17 @@ public class UserCenterActivity extends BaseActivity implements UserCenterContra
         identifier = userInfo.identifier();
         tittleTv.setText(User.getUserDescriber(userInfo));
         identifyLtv.setText(userInfo.username());
-        String phone = userInfo.username();
+        String phone = userInfo.phone();
         if (phone == null || phone.equals("")) {
             phoneEt.setHint("未绑定手机");
+        } else {
+            phoneEt.setFocusable(false);
+            phoneEt.setEnabled(false);
         }
-        phoneEt.setText(phone);
-        phoneEt.setFocusable(false);
-        phoneEt.setEnabled(false);
         tagLtv.setVisibility(View.GONE);
+        phoneEt.setText(phone);
         String nickname;
+        Glide.with(this).load(userInfo.avatar()).error(R.drawable.boy).into(userHead);
         if (isUserSelf) {
             userTimerTaskLtv.setVisibility(View.GONE);
             nickname = userInfo.nickname();

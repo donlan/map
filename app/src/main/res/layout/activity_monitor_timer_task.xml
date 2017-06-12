@@ -44,5 +44,5 @@
         android:layout_alignParentRight="true"
         android:layout_margin="20dp"
         android:src="@drawable/add_48"
-        app:borderWidth="10dp" />
+        />
 </RelativeLayout>

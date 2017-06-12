@@ -42,6 +42,26 @@ public class TraceLocation extends RealmObject {
     private String monitorId;
     @Ignore
     private String displayName;
+    @Ignore
+    private String identifier;
+    @Ignore
+    private String recordId;
+
+    public String getIdentifier() {
+        return identifier;
+    }
+
+    public void setIdentifier(String identifier) {
+        this.identifier = identifier;
+    }
+
+    public String getRecordId() {
+        return recordId;
+    }
+
+    public void setRecordId(String recordId) {
+        this.recordId = recordId;
+    }
 
     public String getDisplayName() {
         if (displayName == null)

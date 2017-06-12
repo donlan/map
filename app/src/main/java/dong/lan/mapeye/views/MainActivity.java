@@ -3,6 +3,7 @@ package dong.lan.mapeye.views;
 import android.content.Intent;
 import android.graphics.Color;
 import android.os.Bundle;
+import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.design.widget.TabLayout;
 import android.support.v4.app.Fragment;
@@ -11,21 +12,23 @@ import android.support.v4.app.FragmentPagerAdapter;
 import android.support.v4.view.ViewPager;
 import android.support.v7.widget.Toolbar;
 
-import com.orhanobut.logger.Logger;
-
 import butterknife.BindView;
 import butterknife.OnClick;
 import cn.jpush.im.android.api.JMessageClient;
+import cn.jpush.im.android.api.callback.GetUserInfoCallback;
 import cn.jpush.im.android.api.event.ContactNotifyEvent;
 import cn.jpush.im.android.api.event.LoginStateChangeEvent;
 import cn.jpush.im.android.api.model.UserInfo;
 import dong.lan.mapeye.R;
-import dong.lan.mapeye.bmob.BmobAction;
 import dong.lan.mapeye.common.UserManager;
 import dong.lan.mapeye.model.Affair;
 import dong.lan.mapeye.model.users.Contact;
+import dong.lan.mapeye.model.users.Friend;
+import dong.lan.mapeye.model.users.User;
 import dong.lan.mapeye.utils.SPHelper;
+import dong.lan.mapeye.views.access.LoginAndSignActivity;
 import dong.lan.mapeye.views.record.RecordFragment;
+import dong.lan.permission.Permission;
 import io.realm.Realm;
 
 import static dong.lan.mapeye.contracts.LoginAndSignContract.loginAndSignView.KEY_IS_LOGIN;
@@ -99,9 +102,7 @@ public class MainActivity extends BaseActivity {
 
         UserManager.instance().initMe();
 
-        if (getIntent().getBooleanExtra("isRegister", false)) {
-            BmobAction.register(JMessageClient.getMyInfo());
-        }
+
         setSupportActionBar(toolbar);
         JMessageClient.registerEventReceiver(this);
         tabs = new Fragment[4];
@@ -113,7 +114,6 @@ public class MainActivity extends BaseActivity {
         tabLayout.setupWithViewPager(viewPager);
         tabLayout.setTabTextColors(Color.WHITE, Color.WHITE);
         tabLayout.setSelectedTabIndicatorColor(Color.LTGRAY);
-
 
     }
 
@@ -149,39 +149,55 @@ public class MainActivity extends BaseActivity {
                     @Override
                     public void execute(Realm realm) {
                         Affair affair = realm.createObject(Affair.class);
+                        affair.setOwner(UserManager.instance().myIdentifier());
                         affair.setId(String.valueOf(System.currentTimeMillis()));
                         affair.setContent("好友请求理由：" + reason);
                         affair.setCreatedTime(System.currentTimeMillis());
                         affair.setExtras("");
                         affair.setType(Affair.TYPE_USER_INVITE);
-                        affair.setHandle(Affair.HANDLE_AS_NOTICE);
+                        affair.setHandle(Affair.HANDLE_NO);
                         affair.setFromUser(fromUsername);
-                        Logger.d(affair);
                     }
                 });
 
                 break;
             case invite_accepted://对方接收了你的好友邀请
-                realm.executeTransactionAsync(new Realm.Transaction() {
+                JMessageClient.getUserInfo(fromUsername, new GetUserInfoCallback() {
                     @Override
-                    public void execute(Realm realm) {
-                        Affair affair = realm.createObject(Affair.class);
-                        affair.setId(String.valueOf(System.currentTimeMillis()));
-                        affair.setContent(fromUsername + "同意了你的好友请求");
-                        affair.setCreatedTime(System.currentTimeMillis());
-                        affair.setExtras("");
-                        affair.setType(Affair.TYPE_NOTICE);
-                        affair.setHandle(Affair.HANDLE_AS_NOTICE);
-                        affair.setFromUser(fromUsername);
-                        Logger.d(affair);
+                    public void gotResult(int i, String s, final UserInfo userInfo) {
+                        if(i == 0){
+                            Realm.getDefaultInstance().executeTransactionAsync(new Realm.Transaction() {
+                                @Override
+                                public void execute(Realm realm) {
+                                    Affair affair = realm.createObject(Affair.class);
+                                    affair.setOwner(UserManager.instance().myIdentifier());
+                                    affair.setId(String.valueOf(System.currentTimeMillis()));
+                                    affair.setContent(fromUsername + "同意了你的好友请求");
+                                    affair.setCreatedTime(System.currentTimeMillis());
+                                    affair.setExtras("");
+                                    affair.setType(Affair.TYPE_NOTICE);
+                                    affair.setHandle(Affair.HANDLE_AS_NOTICE);
+                                    affair.setFromUser(fromUsername);
+                                    Friend friend = new Friend();
+                                    friend.setOwnerId(UserManager.instance().myIdentifier());
+                                    friend.setFriendId(userInfo.getUserName());
+                                    User user = new User(userInfo);
+                                    realm.copyToRealmOrUpdate(user);
+                                    friend.setUser(user);
+                                    realm.copyToRealmOrUpdate(friend);
+                                }
+                            });
+                        }
                     }
                 });
+
                 break;
             case invite_declined://对方拒绝了你的好友邀请
                 realm.executeTransactionAsync(new Realm.Transaction() {
                     @Override
                     public void execute(Realm realm) {
                         Affair affair = realm.createObject(Affair.class);
+                        affair.setOwner(UserManager.instance().myIdentifier());
                         affair.setId(String.valueOf(System.currentTimeMillis()));
                         affair.setContent(fromUsername + " 拒绝了你的好友请求:" + reason);
                         affair.setCreatedTime(System.currentTimeMillis());
@@ -189,7 +205,6 @@ public class MainActivity extends BaseActivity {
                         affair.setType(Affair.TYPE_NOTICE);
                         affair.setHandle(Affair.HANDLE_AS_NOTICE);
                         affair.setFromUser(fromUsername);
-                        Logger.d(affair);
                     }
                 });
                 break;
@@ -198,6 +213,7 @@ public class MainActivity extends BaseActivity {
                     @Override
                     public void execute(Realm realm) {
                         Affair affair = realm.createObject(Affair.class);
+                        affair.setOwner(UserManager.instance().myIdentifier());
                         affair.setId(String.valueOf(System.currentTimeMillis()));
                         affair.setContent(fromUsername + "将你从好友中删除");
                         affair.setCreatedTime(System.currentTimeMillis());
@@ -207,13 +223,19 @@ public class MainActivity extends BaseActivity {
                         affair.setFromUser(fromUsername);
 
                         realm.where(Contact.class).equalTo("user.identifier", fromUsername).findAll().deleteAllFromRealm();
-                        Logger.d(affair);
                     }
                 });
                 break;
             default:
                 break;
         }
+    }
+
+
+    @Override
+    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
+        Permission.instance().handleRequestResult(this,requestCode,permissions,grantResults);
     }
 
     @Override
@@ -223,7 +245,7 @@ public class MainActivity extends BaseActivity {
     }
 
 
-    class PagerAdapter extends FragmentPagerAdapter {
+    private class PagerAdapter extends FragmentPagerAdapter {
 
         PagerAdapter(FragmentManager fm) {
             super(fm);

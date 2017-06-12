@@ -59,7 +59,6 @@ public class MonitorStatusTask extends IntentService {
     protected void onHandleIntent(Intent intent) {
         final String id = intent.getStringExtra(KEY_MONITOR_ID);
         final String recordId = intent.getStringExtra(KEY_RECORD_ID);
-        Logger.d(recordId);
         if (!TextUtils.isEmpty(id)) {
             long time = System.currentTimeMillis();
             Realm realm = Realm.getDefaultInstance();

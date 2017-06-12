@@ -24,12 +24,12 @@ import android.app.Activity;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.net.Uri;
 import android.os.Bundle;
 import android.os.Environment;
 import android.provider.MediaStore;
 import android.support.v7.app.AlertDialog;
-
 
 import java.io.File;
 import java.text.SimpleDateFormat;
@@ -37,13 +37,13 @@ import java.util.Date;
 import java.util.Locale;
 
 import cn.jpush.im.android.api.JMessageClient;
+import cn.jpush.im.android.api.callback.GetAvatarBitmapCallback;
 import cn.jpush.im.android.api.callback.GetUserInfoCallback;
 import cn.jpush.im.android.api.model.UserInfo;
 import cn.jpush.im.api.BasicCallback;
 import dong.lan.mapeye.common.Config;
 import dong.lan.mapeye.common.UserManager;
 import dong.lan.mapeye.contracts.UserCenterContract;
-import dong.lan.mapeye.model.users.Contact;
 import dong.lan.mapeye.model.users.IUserInfo;
 import dong.lan.mapeye.model.users.User;
 import dong.lan.mapeye.utils.PhotoUtil;
@@ -66,6 +66,7 @@ public class UserCenterPresenter implements UserCenterContract.Presenter {
     private boolean isUserSelf;
     private IUserInfo userInfo;
     private UserInfo myUserInfo;
+
     public UserCenterPresenter(UserCenterActivity view) {
         this.view = view;
     }
@@ -137,12 +138,13 @@ public class UserCenterPresenter implements UserCenterContract.Presenter {
                 view.refreshAvatar(bitmap);
                 File headFile = PhotoUtil.saveBitmapAndReturn(
                         Config.PICTURE_PATH, userInfo.identifier() + "head.jpg", bitmap, true);
+                view.refreshAvatar(BitmapFactory.decodeFile(headFile.getPath()));
                 JMessageClient.updateUserAvatar(headFile, new BasicCallback() {
                     @Override
                     public void gotResult(int i, String s) {
-                        if(i ==0 ){
-                            view.toast("头像上传成功");
-                        }else{
+                        if (i == 0) {
+                            view.toast(s+":"+myUserInfo.getAvatar());
+                        } else {
                             view.toast(s);
                         }
                     }
@@ -196,12 +198,14 @@ public class UserCenterPresenter implements UserCenterContract.Presenter {
         if (isUserSelf) {
             if (name.equals(userInfo.nickname()))
                 return;
+            myUserInfo.setNickname(name);
             JMessageClient.updateMyInfo(UserInfo.Field.nickname, myUserInfo, new BasicCallback() {
                 @Override
                 public void gotResult(int i, String s) {
-                    if(i == 0){
+                    if (i == 0) {
+                        updateLocalUserInfo();
                         view.toast("昵称设置成功");
-                    }else{
+                    } else {
                         view.toast(s);
                     }
                 }
@@ -209,14 +213,15 @@ public class UserCenterPresenter implements UserCenterContract.Presenter {
         } else {
             if (name.equals(userInfo.remark()))
                 return;
-            if(myUserInfo !=null){
+            if (myUserInfo != null) {
                 myUserInfo.setNotename(name);
                 myUserInfo.updateNoteName(name, new BasicCallback() {
                     @Override
                     public void gotResult(int i, String s) {
-                        if(i == 0){
+                        if (i == 0) {
+                            updateLocalUserInfo();
                             view.toast("更新备注成功");
-                        }else{
+                        } else {
                             view.toast(s);
                         }
                     }
@@ -225,9 +230,9 @@ public class UserCenterPresenter implements UserCenterContract.Presenter {
                 realm.executeTransactionAsync(new Realm.Transaction() {
                     @Override
                     public void execute(Realm realm) {
-                        User user = realm.where(User.class).equalTo("identifier",myUserInfo.getUserName())
+                        User user = realm.where(User.class).equalTo("identifier", myUserInfo.getUserName())
                                 .findFirst();
-                        if(user != null)
+                        if (user != null)
                             user.setRemark(name);
                     }
                 });
@@ -241,7 +246,18 @@ public class UserCenterPresenter implements UserCenterContract.Presenter {
             view.toast("手机号码不正确");
             return;
         }
-
+        myUserInfo.setSignature(phoneNumber);
+        JMessageClient.updateMyInfo(UserInfo.Field.signature, myUserInfo, new BasicCallback() {
+            @Override
+            public void gotResult(int i, String s) {
+                if (i == 0) {
+                    updateLocalUserInfo();
+                    view.toast("设置手机号成功");
+                } else {
+                    view.toast(s);
+                }
+            }
+        });
 
     }
 
@@ -257,23 +273,60 @@ public class UserCenterPresenter implements UserCenterContract.Presenter {
         JMessageClient.getUserInfo(username, new GetUserInfoCallback() {
             @Override
             public void gotResult(int i, String s, UserInfo userInfo) {
-                if(i ==0 && userInfo!=null){
+                if (i == 0 && userInfo != null) {
                     UserCenterPresenter.this.userInfo = new User(userInfo);
                     myUserInfo = userInfo;
-                    view.initView(UserCenterPresenter.this.userInfo,isUserSelf);
-                }else{
-                    view.toast("获取用户信息失败:"+s);
+                    myUserInfo.getAvatarBitmap(new GetAvatarBitmapCallback() {
+                        @Override
+                        public void gotResult(int i, String s, Bitmap bitmap) {
+                            if(i == 0)
+                            {
+                                view.refreshAvatar(bitmap);
+                            }
+                        }
+                    });
+                    view.initView(UserCenterPresenter.this.userInfo, isUserSelf);
+                } else {
+                    view.toast("获取用户信息失败:" + s);
                 }
             }
         });
 
     }
 
+    private void updateLocalUserInfo() {
+        if (myUserInfo != null) {
+            Realm.getDefaultInstance().executeTransactionAsync(new Realm.Transaction() {
+                @Override
+                public void execute(Realm realm) {
+                    User user = realm.where(User.class).equalTo("identifier", myUserInfo.getUserName())
+                            .findFirst();
+                    if (!myUserInfo.getAvatar().equals(user.avatar()))
+                        user.setHeadAvatar(myUserInfo.getAvatar());
+                    if (!myUserInfo.getNickname().equals(user.nickname())) {
+                        user.setNickname(myUserInfo.getNickname());
+                    }
+                    if (!myUserInfo.getSignature().equals(user.phone())) {
+                        user.setPhoneNumber(myUserInfo.getSignature());
+                    }
+                    if (!myUserInfo.getNotename().equals(user.remark())) {
+                        user.setRemark(myUserInfo.getNotename());
+                    }
+                }
+            }, new Realm.Transaction.OnError() {
+                @Override
+                public void onError(Throwable error) {
+                    error.printStackTrace();
+                }
+            });
+        }
+    }
+
     @Override
     public void toChatActivity() {
         Intent intent = new Intent(view, ChatActivity.class);
         intent.putExtra(ChatActivity.CHAT_TYPE, 0);
-        intent.putExtra(ChatActivity.CHAT_TITTLE,userInfo.identifier());
+        intent.putExtra(ChatActivity.CHAT_TITTLE, userInfo.identifier());
         intent.putExtra(ChatActivity.CHAT_PEER, userInfo.identifier());
         view.startActivity(intent);
     }

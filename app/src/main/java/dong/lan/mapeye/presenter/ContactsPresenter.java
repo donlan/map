@@ -28,10 +28,12 @@ import cn.jpush.im.android.api.callback.GetUserInfoListCallback;
 import cn.jpush.im.android.api.model.UserInfo;
 import dong.lan.mapeye.common.UserManager;
 import dong.lan.mapeye.contracts.ContactsContract;
-import dong.lan.mapeye.model.users.Contacts;
+import dong.lan.mapeye.model.users.Friend;
 import dong.lan.mapeye.model.users.User;
 import dong.lan.mapeye.views.ContactsFragment;
 import io.realm.Realm;
+import io.realm.RealmChangeListener;
+import io.realm.RealmResults;
 
 /**
  * Created by 梁桂栋 on 16-11-15 ： 下午2:01.
@@ -44,7 +46,7 @@ public class ContactsPresenter implements ContactsContract.Presenter {
 
     private ContactsFragment view;
     private Realm realm;
-    private Contacts contacts;
+    private RealmResults<Friend> friends;
 
     public ContactsPresenter(ContactsFragment view) {
         this.view = view;
@@ -53,54 +55,57 @@ public class ContactsPresenter implements ContactsContract.Presenter {
 
     @Override
     public void loadAllContacts() {
-        realm.executeTransactionAsync(new Realm.Transaction() {
+
+        final String id = UserManager.instance().myIdentifier();
+        friends = realm.where(Friend.class).equalTo("ownerId", id).findAllAsync();
+        view.initAdapter();
+        friends.addChangeListener(new RealmChangeListener<RealmResults<Friend>>() {
             @Override
-            public void execute(Realm realm) {
-                String id = UserManager.instance().myIdentifier();
-                Contacts c = realm.where(Contacts.class).equalTo("owner.identifier", id).findFirst();
-                if (c != null)
-                    contacts = realm.copyFromRealm(c);
-                UserManager.instance().setContacts(c);
-            }
-        }, new Realm.Transaction.OnSuccess() {
-            @Override
-            public void onSuccess() {
-                if (contacts != null && !contacts.getContacts().isEmpty())
-                    view.initAdapter();
-                else {
+            public void onChange(RealmResults<Friend> element) {
+                if (element.size() == 0) {
                     ContactManager.getFriendList(new GetUserInfoListCallback() {
                         @Override
-                        public void gotResult(int i, String s, List<UserInfo> list) {
+                        public void gotResult(int i, String s, final List<UserInfo> list) {
                             if (i == 0) {
                                 if (list == null || list.isEmpty())
                                     view.show("你目前没有联系人");
-                                contacts = UserManager.instance().saveContacts(list, realm);
-                                view.initAdapter();
+                                else {
+                                    Realm.getDefaultInstance().executeTransactionAsync(new Realm.Transaction() {
+                                        @Override
+                                        public void execute(Realm realm) {
+                                            for (UserInfo u :
+                                                    list) {
+
+                                                Friend friend = new Friend();
+                                                friend.setFriendId(u.getUserName());
+                                                User user = new User(u);
+                                                realm.copyToRealmOrUpdate(user);
+                                                friend.setUser(user);
+                                                friend.setOwnerId(UserManager.instance().myIdentifier());
+                                                realm.copyToRealmOrUpdate(friend);
+                                            }
+                                        }
+                                    });
+                                }
                             } else {
                                 view.toast(s);
                             }
                         }
                     });
                 }
-            }
-        }, new Realm.Transaction.OnError() {
-            @Override
-            public void onError(Throwable error) {
-                error.printStackTrace();
-                view.show(error.getMessage());
+                view.refreshAdapter(-1);
             }
         });
-
     }
 
     @Override
     public int getContactCount() {
-        return (contacts == null || contacts.getContacts() == null) ? 0 : contacts.getContacts().size();
+        return (friends == null) ? 0 : friends.size();
     }
 
     @Override
     public User getContact(int position) {
-        return contacts.getContacts().get(position);
+        return friends.get(position).getUser();
     }
 
 

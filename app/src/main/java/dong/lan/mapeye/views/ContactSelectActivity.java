@@ -50,13 +50,12 @@ import dong.lan.mapeye.common.JMCenter;
 import dong.lan.mapeye.common.UserManager;
 import dong.lan.mapeye.model.Record;
 import dong.lan.mapeye.model.message.CMDMessage;
-import dong.lan.mapeye.model.users.Contacts;
+import dong.lan.mapeye.model.users.Friend;
 import dong.lan.mapeye.model.users.User;
 import dong.lan.mapeye.utils.NetUtils;
 import dong.lan.mapeye.views.customsView.RecycleViewDivider;
 import io.realm.Realm;
-import io.realm.RealmChangeListener;
-import io.realm.RealmModel;
+import io.realm.RealmResults;
 
 /**
  * Created by 梁桂栋 on 16-11-16 ： 下午11:31.
@@ -76,10 +75,11 @@ public class ContactSelectActivity extends BaseActivity {
     private Adapter adapter;
     private String groupId;
     private Realm realm;
-    private Contacts contacts;
+    private RealmResults<Friend> friends;
 
     @OnClick(R.id.back)
     public void back() {
+        setResult(200);
         finish();
     }
 
@@ -101,6 +101,7 @@ public class ContactSelectActivity extends BaseActivity {
             return;
         }
         final List<User> userInfos = adapter.getUserInfos();
+        List<String> ids = new ArrayList<>(userInfos.size());
         for (final User u :
                 userInfos) {
 
@@ -113,18 +114,15 @@ public class ContactSelectActivity extends BaseActivity {
                 public void gotResult(int i, String s) {
                     Logger.d(i + "," + s);
                     if (i == 0) {
-                        Realm realm = Realm.getDefaultInstance();
-                        UserManager.instance().addGroupMembers(groupId, userInfos, realm);
-                        realm.close();
                         toast("发送成功");
-                        setResult(200);
-                        finish();
                     } else {
                         toast(s);
                     }
                 }
             });
+            ids.add(u.identifier());
         }
+        UserManager.instance().addGroupMembers(groupId, ids);
         isDoing = false;
     }
 
@@ -141,24 +139,17 @@ public class ContactSelectActivity extends BaseActivity {
             }
             userList.setLayoutManager(new GridLayoutManager(this, 1));
             userList.addItemDecoration(new RecycleViewDivider(this, LinearLayoutManager.VERTICAL, 5.0f));
-            contacts = UserManager.instance().getContacts(realm);
-            if (contacts != null) {
-                contacts.addChangeListener(new RealmChangeListener<RealmModel>() {
-                    @Override
-                    public void onChange(RealmModel element) {
-                        if (adapter == null) {
-                            adapter = new Adapter();
-                            userList.setAdapter(adapter);
-                        } else {
-                            adapter.notifyDataSetChanged();
-                        }
-                    }
-                });
-            }
+
+            friends = Realm.getDefaultInstance()
+                    .where(Friend.class).equalTo("ownerId", UserManager.instance()
+                            .myIdentifier()).findAll();
+            adapter = new Adapter();
+            userList.setAdapter(adapter);
 
         } else {
             show("没有此记录相关的详细人配置");
         }
+
     }
 
     @Override
@@ -199,7 +190,7 @@ public class ContactSelectActivity extends BaseActivity {
 
         @Override
         public void onBindViewHolder(SelectHolder holder, final int i) {
-            User user = contacts.getContacts().get(i);
+            User user = friends.get(i).getUser();
             if (user.identifier().equals(UserManager.instance().myIdentifier())) {
                 holder.check.setVisibility(View.GONE);
             } else {
@@ -211,7 +202,7 @@ public class ContactSelectActivity extends BaseActivity {
 
         @Override
         public int getItemCount() {
-            return contacts == null || contacts.getContacts() == null ? 0 : contacts.getContacts().size();
+            return friends == null ? 0 :friends.size();
         }
 
         public HashSet<Integer> getSet() {
@@ -221,15 +212,16 @@ public class ContactSelectActivity extends BaseActivity {
         List<User> getUserInfos() {
             List<User> t = new ArrayList<>();
             for (Integer aSet : set) {
-                t.add(contacts.getContacts().get(aSet));
+                t.add(friends.get(aSet).getUser());
             }
             return t;
         }
 
         public void destroy() {
-            if (contacts != null)
-                contacts.removeChangeListeners();
-            contacts = null;
+            if (friends != null) {
+                friends.removeChangeListeners();
+            }
+            friends = null;
         }
     }
 

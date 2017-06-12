@@ -20,7 +20,6 @@
 
 package dong.lan.mapeye.model;
 
-import dong.lan.mapeye.model.message.CMDMessage;
 import io.realm.RealmObject;
 
 /**
@@ -40,6 +39,7 @@ public class Affair extends RealmObject {
     public static final int TYPE_USER_INVITE =1;
     public static final int TYPE_NOTICE = 2;//只做显示,不做处理
 
+    private String ownerId;
     private String id;             //对应极光Api中的Message的id
     private long tag;         //保存特殊属性（此处保存Contact.createId(groupId,UserId)）
     private String fromUser;    //发送该事务的用户名
@@ -140,4 +140,7 @@ public class Affair extends RealmObject {
         this.extras = extras;
     }
 
+    public void setOwner(String owner) {
+        this.ownerId = owner;
+    }
 }

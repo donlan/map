@@ -1,7 +1,9 @@
 package dong.lan.mapeye.views;
 
+import android.content.DialogInterface;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
+import android.support.v7.app.AlertDialog;
 import android.widget.TextView;
 
 import com.baidu.location.BDLocation;
@@ -38,7 +40,31 @@ public class AddRecordActivity extends BaseActivity implements AddRecordContract
     TextView saveTv;
     private AddRecordContract.Presenter presenter;
     private BaiduMap baiduMap;
-    private BaiduMap.OnMapClickListener mapLongClickListener = new BaiduMap.OnMapClickListener() {
+
+    private BaiduMap.OnMapLongClickListener mapLongClickListener = new BaiduMap.OnMapLongClickListener() {
+        @Override
+        public void onMapLongClick(final LatLng latLng) {
+            //presenter.drawAndAddPoint(baiduMap, latLng);
+            new AlertDialog.Builder(AddRecordActivity.this)
+                    .setTitle("是否在围栏内？")
+                    .setPositiveButton("围栏内", new DialogInterface.OnClickListener() {
+                        @Override
+                        public void onClick(DialogInterface dialog, int which) {
+                            presenter.test(baiduMap,latLng,true);
+                        }
+                    })
+                    .setNegativeButton("不在围栏内", new DialogInterface.OnClickListener() {
+                        @Override
+                        public void onClick(DialogInterface dialog, int which) {
+                            presenter.test(baiduMap,latLng,false);
+                        }
+                    }).show();
+        }
+
+
+    };
+
+    private BaiduMap.OnMapClickListener mapClickListener = new BaiduMap.OnMapClickListener() {
         @Override
         public void onMapClick(LatLng latLng) {
             presenter.drawAndAddPoint(baiduMap, latLng);
@@ -46,7 +72,7 @@ public class AddRecordActivity extends BaseActivity implements AddRecordContract
 
         @Override
         public boolean onMapPoiClick(MapPoi mapPoi) {
-            return false;
+            return true;
         }
     };
     private BitmapDescriptor locBitmap = BitmapDescriptorFactory.fromResource(R.drawable.tip);
@@ -110,12 +136,9 @@ public class AddRecordActivity extends BaseActivity implements AddRecordContract
         saveTv.setText("保存");
         presenter = new AddRecordPresenter(this);
         baiduMap = mapView.getMap();
-        baiduMap.setOnMapClickListener(mapLongClickListener);
-
-        locationService = new LocationService(this);
-        locationService.setLocationOption(locationService.getDefaultLocationClientOption());
-        locationService.registerListener(locationListener);
-        locationService.start();
+        baiduMap.setOnMapLongClickListener(mapLongClickListener);
+        baiduMap.setOnMapClickListener(mapClickListener);
+        MapUtils.setLocation(baiduMap,new LatLng(38.323233,112.324234),BitmapDescriptorFactory.fromResource(R.drawable.location_48));
     }
 
     @Override

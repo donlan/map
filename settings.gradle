@@ -1,1 +1,1 @@
-include ':app', ':sdk',  ':RTPermission'
+include ':app', ':sdk', ':RTPermission', ':trace'

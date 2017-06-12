@@ -25,6 +25,8 @@ import com.baidu.location.LocationClientOption;
 import com.orhanobut.logger.Logger;
 import com.tencent.qcloud.sdk.Constant;
 
+import org.greenrobot.eventbus.EventBus;
+
 import cn.jpush.im.android.api.ContactManager;
 import cn.jpush.im.android.api.JMessageClient;
 import cn.jpush.im.android.api.content.EventNotificationContent;
@@ -164,8 +166,11 @@ public class JMCenter {
                     traceLocation.setSpeed(getNumberExtras(EXTRAS_SPEED, msg).floatValue());
                     traceLocation.setCreateTime(msg.getCreateTime());
                     traceLocation.setRadius(content.getScale().floatValue());
+                    traceLocation.setIdentifier(identifier);
+                    traceLocation.setRecordId(recordId);
+                    traceLocation.setMonitorId(recordId+","+identifier);
                     MonitorManager.instance().handlerMonitorLocation(recordId, identifier, traceLocation);
-                    MonitorManager.instance().post(traceLocation);
+                    EventBus.getDefault().post(traceLocation);
                 }
                 break;
             case eventNotification:
@@ -218,7 +223,7 @@ public class JMCenter {
                         msg.getCreateTime());
                 break;
             case CMDMessage.CMD_MONITOR_STOP:
-                MonitorManager.instance().stopMonitorLocation();
+                MonitorManager.instance().stopMonitorLocation(recordId,identifier);
                 break;
             case CMDMessage.CMD_MONITORING:
                 String id = Contact.createId(getStringExtras(EXTRAS_RECORD_ID, msg), getStringExtras(EXTRAS_IDENTIFIER, msg));

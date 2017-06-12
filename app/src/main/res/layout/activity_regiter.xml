@@ -1,0 +1,96 @@
+<!--
+  ~
+  ~   Copyright (C) 2017 author : 梁桂栋
+  ~
+  ~   Licensed under the Apache License, Version 2.0 (the "License");
+  ~   you may not use this file except in compliance with the License.
+  ~   You may obtain a copy of the License at
+  ~
+  ~        http://www.apache.org/licenses/LICENSE-2.0
+  ~
+  ~   Unless required by applicable law or agreed to in writing, software
+  ~   distributed under the License is distributed on an "AS IS" BASIS,
+  ~   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  ~   See the License for the specific language governing permissions and
+  ~   limitations under the License.
+  ~
+  ~   Email me : stonelavender@hotmail.com
+  ~
+  -->
+
+<dong.lan.mapeye.views.customsView.BlurRelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:fitsSystemWindows="true"
+    app:backgroundImg="@drawable/gaosi_bg">
+
+    <dong.lan.mapeye.views.customsView.CircleImageView
+        android:layout_marginTop="20dp"
+        android:layout_gravity="center"
+        android:layout_width="80dp"
+        android:layout_centerHorizontal="true"
+        android:layout_height="80dp"
+        android:src="@drawable/logo"
+        />
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_centerInParent="true"
+        android:orientation="vertical"
+        android:paddingLeft="24dp"
+        android:paddingRight="24dp">
+
+
+        <dong.lan.mapeye.views.customsView.EditTextWithClearButton
+            android:layout_marginTop="20dp"
+            android:id="@+id/register_user"
+            android:layout_width="match_parent"
+            android:layout_height="@dimen/tencent_tls_ui_edittext_height"
+            android:layout_marginRight="@dimen/tencent_tls_ui_edittext_margin"
+            android:background="@drawable/rect_alpha_bg"
+            android:drawableLeft="@drawable/ic_person"
+            android:drawablePadding="12dp"
+            android:gravity="center_vertical"
+            android:hint="用户名"
+            android:inputType="text"
+            android:paddingLeft="@dimen/tencent_tls_ui_edittext_leftpadding"
+            android:paddingRight="@dimen/tencent_tls_ui_edittext_rightpadding"
+            android:singleLine="true"
+            android:textColorHint="@color/md_grey_700" />
+
+        <EditText
+            android:id="@+id/register_pwd"
+            android:layout_width="fill_parent"
+            android:layout_height="@dimen/tencent_tls_ui_edittext_height"
+            android:layout_marginBottom="@dimen/tencent_tls_ui_edittext_margin"
+            android:layout_marginTop="15dp"
+            android:background="@drawable/rect_alpha_bg"
+            android:drawableLeft="@drawable/ic_password"
+            android:drawablePadding="12dp"
+            android:gravity="center_vertical"
+            android:hint="密码"
+            android:inputType="textPassword"
+            android:paddingLeft="@dimen/tencent_tls_ui_edittext_leftpadding"
+            android:singleLine="true"
+            android:textColorHint="@color/md_grey_700" />
+
+        <Button
+            android:id="@+id/btn_register"
+            android:layout_width="fill_parent"
+            android:layout_height="@dimen/tencent_tls_ui_edittext_height"
+            android:layout_marginBottom="20dp"
+            android:layout_marginTop="@dimen/tencent_tls_ui_edittext_margin"
+            android:background="@drawable/tencent_tls_ui_btn_orange_bg"
+            android:text="注册"
+            android:textColor="@color/md_grey_700"
+            android:textSize="18sp" />
+
+
+    </LinearLayout>
+
+
+
+</dong.lan.mapeye.views.customsView.BlurRelativeLayout>

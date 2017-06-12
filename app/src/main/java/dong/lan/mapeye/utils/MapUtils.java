@@ -193,6 +193,12 @@ public class MapUtils {
         return (Marker) baiduMap.addOverlay(option);
     }
 
+    public static void drawMarker(BaiduMap baiduMap, List<LatLng> point, BitmapDescriptor bitmap, float achorX, float achorY) {
+       for(LatLng p:point){
+           drawMarker(baiduMap,p,bitmap,achorX,achorY);
+       }
+    }
+
     /**
      * 绘制多边形围栏
      * @param baiduMap
@@ -268,7 +274,7 @@ public class MapUtils {
             LatLng p = new LatLng(location.getLatitude(),location.getLongitude());
             points.add(p);
             if(bitmap!=null){
-                Marker marker = drawMarker(baiduMap,p,bitmap);
+                Marker marker = drawMarker(baiduMap,p,bitmap,0.5f,0.5f);
             }
             if(i == 0){
                 setLocation(baiduMap,p,bitmap);
@@ -278,5 +284,16 @@ public class MapUtils {
         PolylineOptions polylineOptions = new PolylineOptions().points(points)
                 .width(10).color(0xee33FF00).keepScale(true);
         baiduMap.addOverlay(polylineOptions);
+        baiduMap.setMapStatus(MapStatusUpdateFactory.zoomTo(18));
+    }
+
+
+    public static void drawHistoryTrace(BaiduMap baiduMap, List<LatLng> locations){
+        if (locations == null || locations.size() <= 1)
+            return;
+        PolylineOptions polylineOptions = new PolylineOptions().points(locations)
+                .width(10).color(0xFF0F4DA8).keepScale(true);
+        baiduMap.addOverlay(polylineOptions);
+        baiduMap.setMapStatus(MapStatusUpdateFactory.zoomTo(18));
     }
 }

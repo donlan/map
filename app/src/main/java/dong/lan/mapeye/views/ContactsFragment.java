@@ -96,7 +96,8 @@ public class ContactsFragment extends BaseFragment implements ContactsContract.V
 
     @Override
     public void initAdapter() {
-        contactsList.setAdapter(new Adapter());
+        if (contactsList.getAdapter() == null)
+            contactsList.setAdapter(new Adapter());
     }
 
     @Override

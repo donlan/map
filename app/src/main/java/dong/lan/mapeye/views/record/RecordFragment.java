@@ -45,6 +45,7 @@ import dong.lan.library.LabelTextView;
 import dong.lan.mapeye.R;
 import dong.lan.mapeye.contracts.RecordContract;
 import dong.lan.mapeye.events.MainEvent;
+import dong.lan.mapeye.events.RecordNetEvent;
 import dong.lan.mapeye.model.Record;
 import dong.lan.mapeye.presenter.RecordPresenter;
 import dong.lan.mapeye.utils.StringHelper;
@@ -118,6 +119,12 @@ public class RecordFragment extends BaseFragment implements RecordContract.Recor
             unbinder.unbind();
         EventBus.getDefault().unregister(this);
     }
+
+    @Subscribe(threadMode = ThreadMode.MAIN)
+    public void recordNetEvent(RecordNetEvent event){
+        recyclerView.getAdapter().notifyDataSetChanged();
+    }
+
 
     @Subscribe(threadMode = ThreadMode.MAIN)
     public void onEvent(MainEvent event) {

@@ -36,5 +36,7 @@ public final class AddRecordContract {
         void drawAndAddPoint(BaiduMap baiduMap, LatLng latLng);
 
         void drawCircleFence(BaiduMap baiduMap);
+
+        void test(BaiduMap baiduMap,LatLng point,boolean isIn);
     }
 }

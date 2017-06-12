@@ -46,4 +46,7 @@ public interface IUserInfo {
     boolean isMe();
 
     int sex();
+
+    String phone();
+
 }

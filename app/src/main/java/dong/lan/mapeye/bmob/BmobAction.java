@@ -22,32 +22,28 @@ package dong.lan.mapeye.bmob;
 
 import android.util.Log;
 
-import com.orhanobut.logger.Logger;
+import org.greenrobot.eventbus.EventBus;
 
 import java.util.Arrays;
 import java.util.List;
 
 import cn.bmob.v3.BmobQuery;
+import cn.bmob.v3.BmobUser;
 import cn.bmob.v3.exception.BmobException;
 import cn.bmob.v3.listener.FindListener;
 import cn.bmob.v3.listener.SaveListener;
-import cn.jpush.im.android.api.model.UserInfo;
+import cn.bmob.v3.listener.UpdateListener;
 import dong.lan.mapeye.bmob.bean.BContact;
 import dong.lan.mapeye.bmob.bean.BPoint;
 import dong.lan.mapeye.bmob.bean.BRecord;
 import dong.lan.mapeye.bmob.bean.BUser;
-import dong.lan.mapeye.common.UserManager;
+import dong.lan.mapeye.events.RecordNetEvent;
 import dong.lan.mapeye.model.Point;
 import dong.lan.mapeye.model.Record;
 import dong.lan.mapeye.model.users.Contact;
 import dong.lan.mapeye.model.users.Group;
-import dong.lan.mapeye.model.users.User;
 import io.realm.Realm;
 import io.realm.RealmList;
-import rx.Subscription;
-import rx.functions.Action1;
-import rx.functions.Func1;
-import rx.schedulers.Schedulers;
 
 /**
  * Created by 梁桂栋 on 17-3-18 ： 下午8:20.
@@ -72,26 +68,19 @@ public class BmobAction {
 
 
     public static void getAllRecord() {
-        final BmobQuery<BUser> q = new BmobQuery<>();
-        q.addWhereEqualTo("identifier", UserManager.instance().myIdentifier());
-        q.findObjectsObservable(BUser.class).map(new Func1<List<BUser>, Subscription>() {
+        if(BmobUser.getCurrentUser(BUser.class) == null)
+            return;
+        BmobQuery<BRecord> query = new BmobQuery<>();
+        query.addWhereEqualTo("own", BmobUser.getCurrentUser(BUser.class));
+        query.include("own");
+        query.findObjects(new FindListener<BRecord>() {
             @Override
-            public Subscription call(final List<BUser> bUsers) {
-                Logger.d(bUsers);
-                if (bUsers == null || bUsers.isEmpty())
-                    return null;
-                BmobQuery<BRecord> query = new BmobQuery<>();
-                query.addWhereEqualTo("own", bUsers.get(0));
-                query.include("own");
-                return query.findObjectsObservable(BRecord.class).subscribe(new Action1<List<BRecord>>() {
-                    @Override
-                    public void call(final List<BRecord> bRecords) {
-                        Logger.d(bRecords);
-                        save(bRecords, bUsers.get(0));
-                    }
-                });
+            public void done(List<BRecord> list, BmobException e) {
+                if (e == null && list!=null) {
+                    save(list, BmobUser.getCurrentUser(BUser.class));
+                }
             }
-        }).subscribeOn(Schedulers.io()).observeOn(Schedulers.io()).subscribe();
+        });
     }
 
     private static void save(final List<BRecord> bRecords, final BUser ower) {
@@ -126,6 +115,7 @@ public class BmobAction {
                             r.getPoints().add(new Point(p.lat, p.lng));
                         }
                         realm.copyToRealmOrUpdate(r);
+                        EventBus.getDefault().post(new RecordNetEvent());
                     }
                 }
             });
@@ -142,7 +132,12 @@ public class BmobAction {
                 if (e == null || (list != null && !list.isEmpty())) {
                     BRecord record = list.get(0);
                     record.addUnique("contacts", copyContacts);
-                    record.save().unsubscribe();
+                    record.save(new SaveListener<String>() {
+                        @Override
+                        public void done(String s, BmobException e) {
+
+                        }
+                    });
                 }
             }
         });
@@ -161,7 +156,12 @@ public class BmobAction {
                         for (int i = 0, s = list.size(); i < s; i++) {
                             if (contact.getId().equals(list.get(i).getId())) {
                                 record.setValue("contacts." + i, contact);
-                                record.update().unsubscribe();
+                                record.update(new UpdateListener() {
+                                    @Override
+                                    public void done(BmobException e) {
+
+                                    }
+                                });
                                 break;
                             }
                         }
@@ -180,7 +180,12 @@ public class BmobAction {
             public void done(List<BRecord> list, BmobException e) {
                 if (e == null || (list != null && !list.isEmpty())) {
                     BRecord record = list.get(0);
-                    record.delete().unsubscribe();
+                    record.delete(new UpdateListener() {
+                        @Override
+                        public void done(BmobException e) {
+
+                        }
+                    });
                 }
             }
         });
@@ -196,18 +201,37 @@ public class BmobAction {
                 if (e == null || (list != null && !list.isEmpty())) {
                     BRecord record = list.get(0);
                     record.removeAll("contacts", Arrays.asList(c));
+                    record.update(new UpdateListener() {
+                        @Override
+                        public void done(BmobException e) {
+
+                        }
+                    });
                 }
             }
         });
     }
 
-    public static void register(UserInfo myInfo) {
-        BUser user = new BUser(new User(myInfo));
-        user.save(new SaveListener<String>() {
+    public static void register(String username, String pwd) {
+        BUser user = new BUser();
+        user.setUsername(username);
+        user.setPassword(pwd);
+        user.signUp(new SaveListener<BUser>() {
             @Override
-            public void done(String s, BmobException e) {
-                UserManager.instance().setUserBmobObjId(s);
-                Log.d(TAG, "done: " + s + "->" + e);
+            public void done(BUser bUser, BmobException e) {
+
+            }
+        });
+    }
+
+    public static void login(String username, String pwd) {
+        BUser user = new BUser();
+        user.setUsername(username);
+        user.setPassword(pwd);
+        user.login(new SaveListener<BUser>() {
+            @Override
+            public void done(BUser bUser, BmobException e) {
+
             }
         });
     }

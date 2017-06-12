@@ -29,7 +29,7 @@
         android:id="@+id/timer_repeat"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_margin="8dp"
+        android:layout_margin="4dp"
         android:paddingBottom="4dp"
         android:paddingLeft="10dp"
         android:paddingRight="10dp"
@@ -47,10 +47,9 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginTop="8dp"
-        android:layout_toRightOf="@id/timer_repeat"
         android:paddingBottom="8dp"
-        android:paddingLeft="16dp"
-        android:paddingRight="16dp"
+        android:layout_marginLeft="70dp"
+        android:layout_marginRight="70dp"
         android:textColor="@color/colorPrimary"
         android:textSize="18sp" />
 
@@ -88,7 +87,7 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_below="@id/timer_info"
-        android:layout_marginTop="12dp"
+        android:layout_marginTop="20dp"
         android:layout_toLeftOf="@id/timer_arrow_tag"
         android:gravity="center"
         android:textSize="18sp" />
@@ -99,7 +98,7 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_below="@id/timer_info"
-        android:layout_marginTop="10dp"
+        android:layout_marginTop="20dp"
         android:layout_toRightOf="@id/timer_arrow_tag"
         android:gravity="center"
         android:textSize="18sp" />
@@ -118,15 +117,15 @@
         android:textSize="14sp" />
 
     <dong.lan.mapeye.views.customsView.ToggleButton
+        android:layout_alignParentRight="true"
         android:id="@+id/timer_switcher"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_below="@id/timer_time_info"
         android:layout_centerHorizontal="true"
-        android:layout_marginTop="12dp"
         app:tb_check_bg_color="@color/md_blue_200"
-        app:tb_check_color="@color/colorPrimary"
-        app:tb_circle_radius="20dp"
-        app:tb_uncheck_color="@color/md_grey_700" />
+        app:tb_check_color="@color/md_blue_700"
+        app:tb_uncheck_bg_color="@color/md_green_100"
+        app:tb_circle_radius="15dp"
+        app:tb_uncheck_color="@color/md_green_500" />
 
 </RelativeLayout>

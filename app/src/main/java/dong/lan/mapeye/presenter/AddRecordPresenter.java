@@ -27,6 +27,7 @@ import java.util.List;
 
 import cn.jpush.im.android.api.JMessageClient;
 import cn.jpush.im.android.api.callback.CreateGroupCallback;
+import dong.lan.mapeye.FenceUnitTest;
 import dong.lan.mapeye.R;
 import dong.lan.mapeye.bmob.BmobAction;
 import dong.lan.mapeye.common.UserManager;
@@ -54,7 +55,7 @@ public class AddRecordPresenter implements AddRecordContract.Presenter {
 
     private AddRecordActivity view;
     private int type = Record.TYPE_CIRCLE;
-    private BitmapDescriptor bitmap = BitmapDescriptorFactory.fromResource(R.drawable.nav);
+    private BitmapDescriptor bitmap = BitmapDescriptorFactory.fromResource(R.drawable.pin_dot);
     private BitmapDescriptor locBitmap = BitmapDescriptorFactory.fromResource(R.drawable.tip);
     private List<LatLng> points = new ArrayList<>();
     private ProgressDialog progress;
@@ -89,7 +90,6 @@ public class AddRecordPresenter implements AddRecordContract.Presenter {
             view.show("请先点击屏幕下方的 路径 按钮");
             return;
         }
-
         if (progress == null) {
             progress = new ProgressDialog(view);
             progress.setCanceledOnTouchOutside(false);
@@ -136,8 +136,8 @@ public class AddRecordPresenter implements AddRecordContract.Presenter {
                                         group.setDescription(label);
                                         group.setGroupId(String.valueOf(groupId));
                                         group.setMembers(new RealmList<Contact>());
-                                        realm.commitTransaction();
                                         realm.copyToRealmOrUpdate(group);
+                                        realm.commitTransaction();
                                         realm.close();
                                         EventBus.getDefault().post(new MainEvent(MainEvent.CODE_ADDED_RECORD, record));
                                         view.toast("保存成功");
@@ -172,7 +172,7 @@ public class AddRecordPresenter implements AddRecordContract.Presenter {
         type = Record.TYPE_FENCE;
         baiduMap.clear();
         MapUtils.drawRecord(baiduMap, points, Record.TYPE_FENCE);
-        MapUtils.onlyDrawMarker(baiduMap, points, bitmap);
+        MapUtils.drawMarker(baiduMap, points, bitmap,0.5f,0.5f);
     }
 
     @Override
@@ -225,6 +225,14 @@ public class AddRecordPresenter implements AddRecordContract.Presenter {
 
                     }
                 }).show();
+
+    }
+
+    @Override
+    public void test(BaiduMap baiduMap,LatLng point,boolean isIn) {
+        MapUtils.drawMarker(baiduMap,point,BitmapDescriptorFactory.fromResource(R.drawable.dot),0.5f,0.5f);
+        FenceUnitTest test = new FenceUnitTest();
+        test.test(type,points,point,radius,isIn);
 
     }
 

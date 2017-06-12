@@ -25,6 +25,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import cn.jpush.im.android.api.JMessageClient;
+import cn.jpush.im.android.api.enums.ConversationType;
 import cn.jpush.im.android.api.model.Conversation;
 import dong.lan.mapeye.contracts.ConversationContract;
 import dong.lan.mapeye.model.conversation.IConversation;
@@ -53,12 +54,13 @@ public class ConversationPresenter implements ConversationContract.Presenter {
 
         List<Conversation> conversationList = JMessageClient.getConversationList();
         conversations = new ArrayList<>();
-        if(conversationList == null || conversationList.isEmpty()){
+        if (conversationList == null || conversationList.isEmpty()) {
             view.toast("没有会话记录");
         } else {
-            for (Conversation c:
+            for (Conversation c :
                     conversationList) {
-                conversations.add(new JConversation(c));
+                if (c.getType() == ConversationType.single)
+                    conversations.add(new JConversation(c));
             }
             view.setConversionAdapter(conversations);
         }

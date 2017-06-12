@@ -24,6 +24,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import cn.bmob.v3.BmobObject;
+import cn.bmob.v3.BmobUser;
 import dong.lan.mapeye.model.Point;
 import dong.lan.mapeye.model.Record;
 import dong.lan.mapeye.model.users.Contact;
@@ -53,8 +54,7 @@ public class BRecord extends BmobObject {
 
     public BRecord(Record record, Group group) {
         id = record.getId();
-        own = new BUser(record.getOwn());
-        own.setObjectId(record.getOwn().getBmobObjId());
+        own = BmobUser.getCurrentUser(BUser.class);
         createTime = record.getCreateTime();
         label = record.getLabel();
         info  = record.getInfo();

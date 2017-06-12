@@ -31,6 +31,8 @@ import com.baidu.mapapi.map.BitmapDescriptor;
 import com.baidu.mapapi.map.BitmapDescriptorFactory;
 import com.baidu.mapapi.map.Marker;
 import com.baidu.mapapi.model.LatLng;
+import com.baidu.mapapi.utils.DistanceUtil;
+import com.baidu.mapapi.utils.SpatialRelationUtil;
 import com.orhanobut.logger.Logger;
 
 import org.greenrobot.eventbus.EventBus;
@@ -42,16 +44,13 @@ import java.util.List;
 import java.util.Stack;
 
 import cn.jpush.im.android.api.JMessageClient;
-import cn.jpush.im.android.api.callback.GetGroupMembersCallback;
 import cn.jpush.im.android.api.model.Message;
-import cn.jpush.im.android.api.model.UserInfo;
 import cn.jpush.im.api.BasicCallback;
 import dong.lan.mapeye.R;
 import dong.lan.mapeye.bmob.BmobAction;
 import dong.lan.mapeye.common.Config;
 import dong.lan.mapeye.common.JMCenter;
 import dong.lan.mapeye.common.MonitorManager;
-import dong.lan.mapeye.common.UserManager;
 import dong.lan.mapeye.contracts.RecordDetailContract;
 import dong.lan.mapeye.events.MainEvent;
 import dong.lan.mapeye.model.Point;
@@ -61,6 +60,7 @@ import dong.lan.mapeye.model.message.CMDMessage;
 import dong.lan.mapeye.model.users.Contact;
 import dong.lan.mapeye.model.users.Group;
 import dong.lan.mapeye.utils.MapUtils;
+import dong.lan.mapeye.utils.PolygonHelper;
 import dong.lan.mapeye.utils.TransitionUtil;
 import dong.lan.mapeye.views.MonitorTimerTaskActivity;
 import dong.lan.mapeye.views.customsView.Dialog;
@@ -90,6 +90,7 @@ public class RecordDetailPresenter implements RecordDetailContract.Presenter {
     private HashMap<String, Marker> markersMap;
     private Stack<LatLng> backup;
 
+
     public RecordDetailPresenter(RecordDetailActivity view) {
         this.view = view;
         backup = new Stack<>();
@@ -98,7 +99,7 @@ public class RecordDetailPresenter implements RecordDetailContract.Presenter {
 
     @Override
     public int getMonitorUsersSize() {
-        return (group == null) ? 0 : group.getMembers().size();
+        return (group == null || !group.isValid()) ? 0 : group.getMembers().size();
     }
 
     @Override
@@ -133,36 +134,39 @@ public class RecordDetailPresenter implements RecordDetailContract.Presenter {
                                 view.setRecordLocation(points);
                                 view.drawRecord(points, record.getType(), record.getRadius());
                             }
-                            final String id = record.getId();
-                            group = realm.where(Group.class).equalTo("groupId", id).findFirst();
-                            if (group == null || group.getMembers().isEmpty()) {
-
-                                JMessageClient.getGroupMembers(Long.parseLong(id), new GetGroupMembersCallback() {
-                                    @Override
-                                    public void gotResult(int i, String s, List<UserInfo> list) {
-                                        group = UserManager.instance().
-                                                initGroupInfo(list, id, record.getLabel(), realm);
-                                        initAdapter(group);
-                                    }
-                                });
-                            } else {
-                                initAdapter(group);
-                            }
-                            Logger.d("" + group);
-
                         }
                     }
                 }
         );
+        initAdapter(id);
     }
 
-    private void initAdapter(Group group) {
-        view.setAdapter();
+    private void initAdapter(String groupId) {
+        group = Realm.getDefaultInstance().where(Group.class)
+                .equalTo("groupId", groupId).findFirstAsync();
         group.addChangeListener(new RealmChangeListener<RealmModel>() {
             @Override
             public void onChange(RealmModel element) {
-
                 RecordDetailPresenter.this.view.refreshList();
+            }
+        });
+        view.setAdapter();
+    }
+
+
+    private void deleteRecordFromRealm(final String recordId, final String groupId) {
+        Realm.getDefaultInstance().executeTransactionAsync(new Realm.Transaction() {
+            @Override
+            public void execute(Realm realm) {
+                realm.where(Record.class).equalTo("id", recordId).findFirst().deleteFromRealm();
+                Group group = realm.where(Group.class).equalTo("groupId", groupId).findFirst();
+                RealmList<Contact> contacts = group.getMembers();
+                for (Contact c :
+                        contacts) {
+                    c.deleteFromRealm();
+                }
+                contacts.clear();
+                group.deleteFromRealm();
             }
         });
     }
@@ -174,23 +178,13 @@ public class RecordDetailPresenter implements RecordDetailContract.Presenter {
                 JMessageClient.exitGroup(Long.parseLong(record.getId()), new BasicCallback() {
                     @Override
                     public void gotResult(int i, String s) {
-                        if(i == 0){
-                            Realm realm = Realm.getDefaultInstance();
-                            realm.beginTransaction();
-                            record.deleteFromRealm();
-                            RealmList<Contact> contacts = group.getMembers();
-                            for (Contact c :
-                                    contacts) {
-                                c.deleteFromRealm();
-                            }
-                            contacts.clear();
-                            group.deleteFromRealm();
-                            realm.commitTransaction();
+                        if (i == 0) {
+                            deleteRecordFromRealm(record.getId(), group.getGroupId());
                             BmobAction.deleteRecord(record.getId());
                             view.show("删除成功");
                             EventBus.getDefault().post(new MainEvent(MainEvent.CODE_DELETE_RECORD, position));
                             view.finish();
-                        }else{
+                        } else {
                             view.toast(s);
                         }
                     }
@@ -293,7 +287,7 @@ public class RecordDetailPresenter implements RecordDetailContract.Presenter {
         JMessageClient.removeGroupMembers(Long.parseLong(record.getId()), Collections.singletonList(contact.getUser().identifier()), new BasicCallback() {
             @Override
             public void gotResult(int i, String s) {
-                if(i == 0){
+                if (i == 0) {
                     realm.beginTransaction();
                     List<Contact> contacts = group.getMembers();
                     contacts.remove(contact);
@@ -301,7 +295,7 @@ public class RecordDetailPresenter implements RecordDetailContract.Presenter {
                     realm.commitTransaction();
                     BmobAction.removeRecordMember(record.getId(), contact);
                     view.refreshList();
-                }else{
+                } else {
                     view.toast(s);
                 }
             }
@@ -313,23 +307,24 @@ public class RecordDetailPresenter implements RecordDetailContract.Presenter {
     public void handlerLocationMessage(TraceLocation traceLocation) {
         if (markersMap == null)
             markersMap = new HashMap<>();
-        String id = String.valueOf(traceLocation.getMonitorId());
+        String id = traceLocation.getMonitorId();
         LatLng point = new LatLng(traceLocation.getLatitude(), traceLocation.getLongitude());
-        if (markersMap.containsKey(id)) {
-            Marker marker = markersMap.get(id);
+        Marker marker = markersMap.get(id);
+        if (marker != null) {
             marker.setPosition(point);
         } else {
             int pos = 0;
+            String identifier = traceLocation.getIdentifier();
             List<Contact> contacts = group.getMembers();
             for (int i = 0; i < contacts.size(); i++) {
-                if (contacts.get(i).getId().equals(id)) {
+                if (contacts.get(i).getUser().identifier().equals(identifier)) {
                     pos = i + 1;
                     break;
                 }
             }
             BitmapDescriptor icon = BitmapDescriptorFactory.fromView(
                     new MapPinNumView(view, String.valueOf(pos), Color.YELLOW, 18, Color.DKGRAY));
-            Marker marker = MapUtils.drawMarker(view.getMap(), point, icon, 0.5f, 1f);
+            marker = MapUtils.drawMarker(view.getMap(), point, icon, 0.5f, 1f);
             markersMap.put(id, marker);
         }
     }
@@ -428,16 +423,16 @@ public class RecordDetailPresenter implements RecordDetailContract.Presenter {
 
         JMCenter.sendClientInfoMessage(contact.getUser().identifier(),
                 record.getId(), new BasicCallback() {
-            @Override
-            public void gotResult(int i, String s) {
-                Logger.d(i+","+s);
-                if (i == 0) {
-                    view.toast("发送请求成功，请等待数据回传");
-                }else{
-                    view.toast(i+","+s);
-                }
-            }
-        });
+                    @Override
+                    public void gotResult(int i, String s) {
+                        Logger.d(i + "," + s);
+                        if (i == 0) {
+                            view.toast("发送请求成功，请等待数据回传");
+                        } else {
+                            view.toast(i + "," + s);
+                        }
+                    }
+                });
     }
 
     @Override
@@ -456,7 +451,7 @@ public class RecordDetailPresenter implements RecordDetailContract.Presenter {
 
     @Override
     public void onDestroy() {
-        if (group != null)
+        if (group != null && group.isManaged())
             group.removeChangeListeners();
         if (realm != null) {
             realm.removeAllChangeListeners();
@@ -465,5 +460,24 @@ public class RecordDetailPresenter implements RecordDetailContract.Presenter {
         if (markersMap != null)
             markersMap.clear();
         markersMap = null;
+    }
+
+    public void testJudge(LatLng latLng) {
+        int type = record.getType();
+        boolean in = false;
+        if (type == Record.TYPE_FENCE) {
+            in = SpatialRelationUtil.isPolygonContainsPoint(record.getLatLngPoints(), latLng);
+        } else if (type == Record.TYPE_ROUTE) {
+            LatLng p = SpatialRelationUtil.getNearestPointFromLine(record.getLatLngPoints(), latLng);
+            double d = DistanceUtil.getDistance(p, latLng);
+            Logger.d(d);
+            in = d < PolygonHelper.DISTANCE;
+        } else if (type == Record.TYPE_CIRCLE) {
+            in = PolygonHelper.isInCircleFence(record.getPoints().get(0),
+                    latLng,
+                    50,
+                    record.getRadius());
+        }
+        view.toast("围栏中：" + in + " -> ");
     }
 }

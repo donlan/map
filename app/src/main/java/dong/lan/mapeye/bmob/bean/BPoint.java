@@ -22,8 +22,6 @@ package dong.lan.mapeye.bmob.bean;
 
 import com.baidu.mapapi.model.LatLng;
 
-import cn.bmob.v3.BmobObject;
-
 /**
  * Created by 梁桂栋 on 17-3-18 ： 下午7:42.
  * Email:       760625325@qq.com
@@ -31,7 +29,7 @@ import cn.bmob.v3.BmobObject;
  * description: map
  */
 
-public class BPoint extends BmobObject {
+public class BPoint {
     public double lat;
     public double lng;
 

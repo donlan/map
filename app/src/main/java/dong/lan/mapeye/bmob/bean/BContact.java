@@ -31,7 +31,7 @@ import dong.lan.mapeye.model.users.User;
  * description: map
  */
 
-public class BContact extends BmobObject {
+public class BContact  extends BmobObject{
 
     private String id;                    //对应域UserInfo.getUserId()
     private Long startMonitorTime;      //定时监听位置变化的开始时间

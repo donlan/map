@@ -27,7 +27,7 @@ import android.content.Intent;
 import com.orhanobut.logger.Logger;
 
 import dong.lan.mapeye.common.Config;
-import dong.lan.mapeye.task.TimerHandlerActivity;
+import dong.lan.mapeye.views.TimerHandlerActivity;
 
 public class TimerTaskReceiver extends BroadcastReceiver {
 

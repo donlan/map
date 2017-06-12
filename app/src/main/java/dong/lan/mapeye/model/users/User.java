@@ -24,6 +24,7 @@ import android.text.TextUtils;
 
 import cn.jpush.im.android.api.model.UserInfo;
 import io.realm.RealmObject;
+import io.realm.annotations.PrimaryKey;
 
 /**
  * Created by 梁桂栋 on 16-11-6 ： 下午4:00.
@@ -34,12 +35,14 @@ import io.realm.RealmObject;
 
 public class User extends RealmObject implements IUserInfo{
 
+    @PrimaryKey
     private String identifier;
     private String username;
     private int sex;
     private String headAvatar;
     private String nickname;
     private String remark;
+    private String phone;
     private String bmobObjId;
 
     public User() {
@@ -52,6 +55,7 @@ public class User extends RealmObject implements IUserInfo{
         headAvatar = userInfo.getAvatar();
         nickname = userInfo.getNickname();
         remark = userInfo.getNotename();
+        phone = userInfo.getSignature();
     }
 
     public static String getUserDescriber(UserInfo userProfile) {
@@ -123,6 +127,11 @@ public class User extends RealmObject implements IUserInfo{
         return sex;
     }
 
+    @Override
+    public String phone() {
+        return phone;
+    }
+
     public void setSex(int sex) {
         this.sex = sex;
     }
@@ -153,4 +162,7 @@ public class User extends RealmObject implements IUserInfo{
         return identifier;
     }
 
+    public void setPhoneNumber(String phoneNumber) {
+        this.phone = phoneNumber;
+    }
 }

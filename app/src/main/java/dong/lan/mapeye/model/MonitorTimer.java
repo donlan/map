@@ -33,7 +33,7 @@ import io.realm.RealmObject;
 public class MonitorTimer extends RealmObject {
 
 
-    private static final int DEFAULT_DELAY_TIME = 2000;
+    private static final int DEFAULT_DELAY_TIME = 30000;
     private Record record;
     private User user;
     private long createTime;
@@ -55,15 +55,15 @@ public class MonitorTimer extends RealmObject {
     public long getTriggerTimeOfStart() {
         long curTime = System.currentTimeMillis();
         if (curTime < startTime)
-            return System.currentTimeMillis() + startTime - curTime + DEFAULT_DELAY_TIME;
-        return System.currentTimeMillis() + DEFAULT_DELAY_TIME;
+            return startTime - DEFAULT_DELAY_TIME;
+        return System.currentTimeMillis()+5000;
     }
 
     public long getTriggerTimeOfEnd() {
         long curTime = System.currentTimeMillis();
         if (curTime < endTime)
-            return System.currentTimeMillis() + endTime - curTime + DEFAULT_DELAY_TIME;
-        return System.currentTimeMillis() + DEFAULT_DELAY_TIME;
+            return endTime  - DEFAULT_DELAY_TIME;
+        return System.currentTimeMillis()+5000;
     }
 
 

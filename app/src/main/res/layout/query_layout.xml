@@ -43,7 +43,7 @@
         android:filterTouchesWhenObscured="true"
         android:focusableInTouchMode="true"
         android:hint="@string/add_contact"
-        android:inputType="phone"
+        android:inputType="text"
         android:lines="1"
         android:textColor="@color/md_white_1000"
         android:textColorHint="@color/md_white_1000"

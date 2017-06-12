@@ -20,7 +20,7 @@
 
 package dong.lan.mapeye.bmob.bean;
 
-import cn.bmob.v3.BmobObject;
+import cn.bmob.v3.BmobUser;
 import dong.lan.mapeye.model.users.IUserInfo;
 import dong.lan.mapeye.model.users.User;
 
@@ -31,9 +31,8 @@ import dong.lan.mapeye.model.users.User;
  * description: map
  */
 
-public class BUser extends BmobObject {
+public class BUser extends BmobUser {
     private String identifier;
-    private String username;
     private int sex;
     private String headAvatar;
     private String nickname;
@@ -44,7 +43,7 @@ public class BUser extends BmobObject {
 
     public BUser(IUserInfo userInfo) {
         identifier = userInfo.identifier();
-        username = userInfo.username();
+        setUsername(userInfo.username());
         sex = userInfo.sex();
         headAvatar = userInfo.avatar();
         nickname = userInfo.nickname();
@@ -55,14 +54,15 @@ public class BUser extends BmobObject {
     public User toUser() {
         User user = new User();
         user.setBmobObjId(getObjectId());
-        user.setUsername(username);
-        user.setIdentifier(identifier);
+        user.setUsername(getUsername());
+        user.setIdentifier(getUsername());
         user.setNickname(nickname);
         user.setSex(sex);
         user.setRemark(remark);
         user.setHeadAvatar(headAvatar);
         return user;
     }
+
     public String getIdentifier() {
         return identifier;
     }
@@ -71,13 +71,6 @@ public class BUser extends BmobObject {
         this.identifier = identifier;
     }
 
-    public String getUsername() {
-        return username;
-    }
-
-    public void setUsername(String username) {
-        this.username = username;
-    }
 
     public int getSex() {
         return sex;
@@ -116,7 +109,6 @@ public class BUser extends BmobObject {
         return "BUser{" +
                 "objId=" + getObjectId() +
                 ", identifier='" + identifier + '\'' +
-                ", username='" + username + '\'' +
                 ", sex=" + sex +
                 ", headAvatar='" + headAvatar + '\'' +
                 ", nickname='" + nickname + '\'' +

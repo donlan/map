@@ -24,7 +24,6 @@ package dong.lan.mapeye;
  * Created by 梁桂栋 on 17-3-29 ： 下午11:09.
  * Email:       760625325@qq.com
  * GitHub:      github.com/donlan
- * description: map
  */
 
 public interface DelayInit<T> {

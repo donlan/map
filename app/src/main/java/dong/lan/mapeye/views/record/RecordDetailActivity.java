@@ -42,9 +42,14 @@ import android.widget.TextView;
 import com.baidu.mapapi.map.BaiduMap;
 import com.baidu.mapapi.map.BitmapDescriptor;
 import com.baidu.mapapi.map.BitmapDescriptorFactory;
+import com.baidu.mapapi.map.MapStatusUpdateFactory;
 import com.baidu.mapapi.map.MapView;
 import com.baidu.mapapi.map.Marker;
 import com.baidu.mapapi.model.LatLng;
+
+import org.greenrobot.eventbus.EventBus;
+import org.greenrobot.eventbus.Subscribe;
+import org.greenrobot.eventbus.ThreadMode;
 
 import java.util.List;
 
@@ -56,6 +61,7 @@ import dong.lan.mapeye.R;
 import dong.lan.mapeye.common.MonitorManager;
 import dong.lan.mapeye.common.UserManager;
 import dong.lan.mapeye.contracts.RecordDetailContract;
+import dong.lan.mapeye.contracts.UserCenterContract;
 import dong.lan.mapeye.events.MonitorTaskEvent;
 import dong.lan.mapeye.model.Record;
 import dong.lan.mapeye.model.TraceLocation;
@@ -65,8 +71,8 @@ import dong.lan.mapeye.presenter.RecordDetailPresenter;
 import dong.lan.mapeye.utils.MapUtils;
 import dong.lan.mapeye.utils.StringHelper;
 import dong.lan.mapeye.views.BaseActivity;
-import dong.lan.mapeye.views.ChatActivity;
 import dong.lan.mapeye.views.ContactSelectActivity;
+import dong.lan.mapeye.views.UserCenterActivity;
 import dong.lan.mapeye.views.customsView.MapPinNumView;
 import dong.lan.mapeye.views.customsView.PinView;
 import dong.lan.mapeye.views.customsView.ToggleCheckBox;
@@ -106,12 +112,11 @@ public class RecordDetailActivity extends BaseActivity implements RecordDetailCo
     Marker marker;
     int count = 1000;
     private Subscription locSubscriber;
-    private Subscription refreshSub;
     private Subscription monitorSubscription;
     private BaiduMap baiduMap;
     private RecordDetailPresenter presenter;
     private Adapter adapter;
-    private BitmapDescriptor bitmap = BitmapDescriptorFactory.fromResource(R.drawable.nav);
+    private BitmapDescriptor bitmap = BitmapDescriptorFactory.fromResource(R.drawable.pin_dot);
     private BitmapDescriptor locBitmap = BitmapDescriptorFactory.fromResource(R.drawable.tip);
 
     @OnClick(R.id.reeditCancel)
@@ -168,6 +173,7 @@ public class RecordDetailActivity extends BaseActivity implements RecordDetailCo
             @Override
             public void onMapLongClick(LatLng latLng) {
                 presenter.addPoint(latLng);
+                presenter.testJudge(latLng);
             }
         });
 
@@ -228,15 +234,7 @@ public class RecordDetailActivity extends BaseActivity implements RecordDetailCo
                 .subscribe(new Action1<TraceLocation>() {
                     @Override
                     public void call(TraceLocation traceLocation) {
-                        presenter.handlerLocationMessage(traceLocation);
-                    }
-                });
-        refreshSub = MonitorManager.instance().subscriber(int.class)
-                .observeOn(AndroidSchedulers.mainThread())
-                .subscribe(new Action1<Integer>() {
-                    @Override
-                    public void call(Integer integer) {
-                        refreshList();
+
                     }
                 });
         monitorSubscription = MonitorManager.instance().subscriber(MonitorTaskEvent.class)
@@ -247,12 +245,19 @@ public class RecordDetailActivity extends BaseActivity implements RecordDetailCo
                         refreshList();
                     }
                 });
-
+        EventBus.getDefault().register(this);
     }
+
+
+    @Subscribe(threadMode = ThreadMode.MAIN)
+    public void onLocationEvent(TraceLocation traceLocation){
+        presenter.handlerLocationMessage(traceLocation);
+    }
+
 
     private void test(){
         marker = MapUtils.drawMarker(baiduMap, new LatLng(lat,lng),
-                BitmapDescriptorFactory.fromView(new PinView(this,0,Color.YELLOW,"godood")));
+                BitmapDescriptorFactory.fromView(new PinView(this,0,Color.YELLOW,"测试")));
         new H().sendEmptyMessage(100);
     }
 
@@ -275,8 +280,10 @@ public class RecordDetailActivity extends BaseActivity implements RecordDetailCo
     @Override
     public void drawRecord(List<LatLng> points, int type, int radius) {
         baiduMap.clear();
-        MapUtils.drawMarker(baiduMap, points, bitmap);
+        MapUtils.drawMarker(baiduMap, points, bitmap,0.5f,0.5f);
         MapUtils.drawRecord(baiduMap, points, type, radius);
+
+        baiduMap.setMapStatus(MapStatusUpdateFactory.zoomTo(18));
     }
 
     @Override
@@ -332,10 +339,9 @@ public class RecordDetailActivity extends BaseActivity implements RecordDetailCo
         presenter.onDestroy();
         if (locSubscriber != null)
             locSubscriber.unsubscribe();
-        if (refreshSub != null)
-            refreshSub.unsubscribe();
         if (monitorSubscription != null)
             monitorSubscription.unsubscribe();
+        EventBus.getDefault().unregister(this);
     }
 
     @Override
@@ -377,9 +383,9 @@ public class RecordDetailActivity extends BaseActivity implements RecordDetailCo
                 @Override
                 public void onClick(View v) {
                     Contact contact = presenter.getContact(holder.getLayoutPosition());
-                    Intent intent = new Intent(RecordDetailActivity.this, ChatActivity.class);
-                    intent.putExtra(ChatActivity.CHAT_TITTLE,contact.getUser().displayName());
-                    intent.putExtra(ChatActivity.CHAT_PEER, contact.getUser().identifier());
+                    Intent intent = new Intent(RecordDetailActivity.this,
+                            UserCenterActivity.class);
+                    intent.putExtra(UserCenterContract.View.KEY_USERNAME, contact.getUser().identifier());
                     startActivity(intent);
                 }
             });

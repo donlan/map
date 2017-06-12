@@ -12,7 +12,7 @@
     <string name="look">查看</string>
     <string name="delete">删除</string>
     <string name="title_activity_center">CenterActivity</string>
-    <string name="add_contact">用户手机号码</string>
+    <string name="add_contact">用户名</string>
     <string name="back">返回</string>
     <string name="done">确定</string>
     <string name="send">发送</string>

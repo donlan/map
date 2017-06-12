@@ -12,6 +12,7 @@
             <option value="$PROJECT_DIR$/RTPermission" />
             <option value="$PROJECT_DIR$/app" />
             <option value="$PROJECT_DIR$/sdk" />
+            <option value="$PROJECT_DIR$/trace" />
           </set>
         </option>
         <option name="resolveModulePerSourceSet" value="false" />

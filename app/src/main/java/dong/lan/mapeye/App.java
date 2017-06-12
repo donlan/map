@@ -124,5 +124,7 @@ public class App extends Application implements DelayInit<String> {
         JMessageClient.setDebugMode(true);
         JMessageClient.init(this, true);
         JMessageClient.registerEventReceiver(this);
+        JMessageClient.setNotificationMode(JMessageClient.NOTI_MODE_NO_NOTIFICATION);
+
     }
 }

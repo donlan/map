@@ -22,12 +22,12 @@ package dong.lan.mapeye.presenter;
 
 import com.orhanobut.logger.Logger;
 
+import dong.lan.mapeye.common.UserManager;
 import dong.lan.mapeye.contracts.AffairsContract;
 import dong.lan.mapeye.model.Affair;
 import dong.lan.mapeye.views.AffairsListFragment;
 import io.realm.Realm;
 import io.realm.RealmChangeListener;
-import io.realm.RealmList;
 import io.realm.RealmResults;
 import io.realm.Sort;
 
@@ -74,7 +74,7 @@ public class AffairsPresenter implements AffairsContract.Presenter {
         if (realm.isInTransaction())
             return;
         realm.beginTransaction();
-        affairs = realm.where(Affair.class)
+        affairs = realm.where(Affair.class).equalTo("ownerId", UserManager.instance().myIdentifier())
                 .findAllSorted("createdTime", Sort.DESCENDING);
         realm.commitTransaction();
         view.setupAdapter(affairs);
