@@ -85,7 +85,7 @@ public class MonitorManager {
     private static MonitorManager manager;
     private LocationService locationService;
     private HashMap<String, Record> monitor;
-    private HashMap<String, MonitorRecode> monitorRecodes;
+    private HashMap<String, Long> monitorRecodes;
     private SerializedSubject<Object, Object> bus;
     private Context context;
     private Uri alertSound = null;
@@ -132,7 +132,7 @@ public class MonitorManager {
      */
     public void addMonitor(String id, Record record, MonitorRecode monitorRecode) {
         monitor.put(id, record);
-        monitorRecodes.put(id, monitorRecode);
+        monitorRecodes.put(id, monitorRecode.getId());
     }
 
     /**
@@ -142,18 +142,17 @@ public class MonitorManager {
      */
     public void removeMonitor(String id) {
         monitor.remove(id);
-        MonitorRecode monitorRecode = monitorRecodes.remove(id);
-        if (monitorRecode != null) {
-            if (monitorRecode.isValid()) {
-                defaultRealm.beginTransaction();
-                monitorRecode = defaultRealm.where(MonitorRecode.class)
-                        .equalTo("id", monitorRecode.getId()).findFirst();
-                monitorRecode.setEndTime(System.currentTimeMillis());
-                defaultRealm.commitTransaction();
-            } else {
-                monitorRecode.setEndTime(System.currentTimeMillis());
+        final long  mId = monitorRecodes.remove(id);
+        Realm.getDefaultInstance().executeTransactionAsync(new Realm.Transaction() {
+            @Override
+            public void execute(Realm realm) {
+               MonitorRecode r =  realm.where(MonitorRecode.class)
+                        .equalTo("id",mId).findFirst();
+                if(r !=null){
+                    r.setEndTime(System.currentTimeMillis());
+                }
             }
-        }
+        });
         Logger.d("remove Monitor Task:" + id);
     }
 
@@ -197,16 +196,19 @@ public class MonitorManager {
         }
     }
 
-    private void addMonitorRecord(MonitorRecode monitorRecode, TraceLocation traceLocation) {
-        if (monitorRecode != null) {
-            if (defaultRealm != null) {
-                defaultRealm.beginTransaction();
-                monitorRecode.getLocations().add(traceLocation);
-                if (monitorRecode.getCreateTime() == 0)
-                    monitorRecode.setCreateTime(System.currentTimeMillis());
-                defaultRealm.commitTransaction();
+    private void addMonitorRecord(final long id, final TraceLocation traceLocation) {
+        Realm.getDefaultInstance().executeTransactionAsync(new Realm.Transaction() {
+            @Override
+            public void execute(Realm realm) {
+                MonitorRecode r = realm.where(MonitorRecode.class)
+                        .equalTo("id", id).findFirst();
+                if (r != null) {
+                    r.getLocations().add(traceLocation);
+                    if (r.getCreateTime() == 0)
+                        r.setCreateTime(System.currentTimeMillis());
+                }
             }
-        }
+        });
     }
 
 
@@ -606,8 +608,8 @@ public class MonitorManager {
                         @Override
                         public void execute(Realm realm) {
                             Contact c = realm.where(Contact.class)
-                                    .equalTo("id",id).findFirst();
-                            if(c!=null)
+                                    .equalTo("id", id).findFirst();
+                            if (c != null)
                                 c.setStatus(Contact.STATUS_NONE);
                         }
                     });
@@ -667,11 +669,11 @@ public class MonitorManager {
                         @Override
                         public void execute(Realm realm) {
                             Contact c = realm.where(Contact.class)
-                                    .equalTo("id",id).findFirst();
+                                    .equalTo("id", id).findFirst();
                             Record r = realm.where(Record.class)
-                                    .equalTo("id",recordId)
+                                    .equalTo("id", recordId)
                                     .findFirst();
-                            if(c!=null) {
+                            if (c != null) {
                                 c.setStatus(Contact.STATUS_WAITING);
                                 MonitorRecode monitorRecode = realm.createObject(MonitorRecode.class);
                                 monitorRecode.setId(mrId);
@@ -679,7 +681,7 @@ public class MonitorManager {
                                 monitorRecode.setMonitoredUser(c.getUser());
                                 monitorRecode.setRecord(r);
                                 monitorRecode.setLocations(new RealmList<TraceLocation>());
-                                addMonitor(id, r, monitorRecode);
+                                addMonitor(id, realm.copyFromRealm(r), realm.copyToRealm(monitorRecode));
                             }
                         }
                     });

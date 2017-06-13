@@ -122,7 +122,11 @@ public class RecordFragment extends BaseFragment implements RecordContract.Recor
 
     @Subscribe(threadMode = ThreadMode.MAIN)
     public void recordNetEvent(RecordNetEvent event){
-        recyclerView.getAdapter().notifyDataSetChanged();
+        if(recyclerView.getAdapter()!=null) {
+            recyclerView.getAdapter().notifyDataSetChanged();
+            if (recyclerView.getAdapter().getItemCount() > 0)
+                emptyView.setVisibility(View.GONE);
+        }
     }
 
 

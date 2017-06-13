@@ -80,6 +80,7 @@ public class LoginActivity extends BaseActivity {
                     intent.putExtra("loginFlag", loginFlag);
                     intent.putExtra("isRegister", isRegister);
                     startActivity(intent);
+                    setResult(100);
                     finish();
                 }else{
                     toast("登录失败："+s);
